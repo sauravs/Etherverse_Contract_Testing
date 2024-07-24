@@ -42,7 +42,7 @@ contract RPGItemNFT is ERC721, Ownable, ReentrancyGuard {
     mapping(address => bool) public whitelisted;
     mapping(uint256 => Asset.Stat) public upgradeMapping;
     mapping(address => uint256) public upgradePricing;
-    mapping(uint256 => uint256) private tokenLockedTill;
+    mapping(uint256 => uint256) public tokenLockedTill; //@tester : updated to private for testing purpose (revert back to private before deployment to mainnet)
     mapping(uint256 => bool) public isDeployed;
 
     event NftMinted(
@@ -106,7 +106,7 @@ contract RPGItemNFT is ERC721, Ownable, ReentrancyGuard {
         _nextTokenId = STARTING_TOKEN_ID;
     }
 
-    function setDeployed(uint256 chainId, bool _status) external onlyOwner {
+    function setDeployed(uint256 chainId, bool _status) external onlyOwner {     //@tester : why it is restricted to onlyOwner?
         isDeployed[chainId] = _status;
     }
 

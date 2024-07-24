@@ -38,24 +38,154 @@ function setUp() public {
         assertEq(stat2, 20);
         assertEq(stat3, 30);
 
-        // assertEq(uint(rpgItemNFT.statLabels(0)), uint(Asset.StatType.STR));
-        // assertEq(uint(rpgItemNFT.statLabels(1)), uint(Asset.StatType.CON));
-        // assertEq(uint(rpgItemNFT.statLabels(2)), uint(Asset.StatType.DEX));
-        // assertEq(uint(rpgItemNFT.AssetType()), uint(Asset.Type.Weapon));
-        // assertEq(rpgItemNFT.svgColors(0), 213);
-        // assertEq(rpgItemNFT.svgColors(1), 123);
-        // assertEq(rpgItemNFT.svgColors(2), 312);
-        // assertEq(rpgItemNFT.colorRanges(0), 0);
-        // assertEq(rpgItemNFT.colorRanges(1), 10);
-        // assertEq(rpgItemNFT.colorRanges(2), 20);
-        // assertEq(rpgItemNFT.colorRanges(3), 30);
-        // assertEq(rpgItemNFT.itemImage(), "https://ipfs.io/ipfs/QmVQ2vpBD1U6P22V2xaHk5KF5x6mQAM7HmFsc8c2AsQhgo");
+        assertEq(uint(rpgItemNFT.statLabels(0)), uint(Asset.StatType.STR));
+        assertEq(uint(rpgItemNFT.statLabels(1)), uint(Asset.StatType.CON));
+        assertEq(uint(rpgItemNFT.statLabels(2)), uint(Asset.StatType.DEX));
+        assertEq(uint(rpgItemNFT.AssetType()), uint(Asset.Type.Weapon));
+        assertEq(rpgItemNFT.svgColors(0), 213);
+        assertEq(rpgItemNFT.svgColors(1), 123);
+        assertEq(rpgItemNFT.svgColors(2), 312);
+        assertEq(rpgItemNFT.colorRanges(0), 0);
+        assertEq(rpgItemNFT.colorRanges(1), 10);
+        assertEq(rpgItemNFT.colorRanges(2), 20);
+        assertEq(rpgItemNFT.colorRanges(3), 30);
+        assertEq(rpgItemNFT.itemImage(), "https://ipfs.io/ipfs/QmVQ2vpBD1U6P22V2xaHk5KF5x6mQAM7HmFsc8c2AsQhgo");
         assertEq(rpgItemNFT._ccipHandler(), 0x3c7444D7351027473698a7DCe751eE6Aea8036ee);
         assertEq(rpgItemNFT.mintPrice(), 100000);
         assertEq(rpgItemNFT.isDeployed(block.chainid), true);
         assertEq(rpgItemNFT.uriAddress(), address(0));
         assertEq(rpgItemNFT._nextTokenId(), 1000000);
     }
+
+
+    function testSetDeployed() public {
+
+        vm.prank(owner);
+        rpgItemNFT.setDeployed(1, true);
+        assertEq(rpgItemNFT.isDeployed(1), true);
+    }
+
+    function testColorRangesArray() public {
+        uint8[] memory colorRanges = rpgItemNFT.colorRangesArray();
+        assertEq(colorRanges.length, 4);
+        assertEq(colorRanges[0], 0);
+        assertEq(colorRanges[1], 10);
+        assertEq(colorRanges[2], 20);
+        assertEq(colorRanges[3], 30);
+    }
+
+    function testSvgColorsArray() public {
+        uint24[] memory svgColors = rpgItemNFT.svgColorsArray();
+        assertEq(svgColors.length, 3);
+        assertEq(svgColors[0], 213);
+        assertEq(svgColors[1], 123);
+        assertEq(svgColors[2], 312);
+    }
+
+    function testStatLabelsArray() public {
+        Asset.StatType[3] memory statLabels = rpgItemNFT.statLabelsArray();
+        assertEq(uint(statLabels[0]), uint(Asset.StatType.STR));
+        assertEq(uint(statLabels[1]), uint(Asset.StatType.CON));
+        assertEq(uint(statLabels[2]), uint(Asset.StatType.DEX));
+    }
+
+    function testLockStatus() public {
+        uint256 tokenId = 1;
+        vm.prank(ccipHandler);
+        rpgItemNFT.setTokenLockStatus(tokenId, block.timestamp + 1000);
+        assertEq(rpgItemNFT.lockStatus(tokenId), true);
+    }
+
+    function testSetTokenLockStatus() public {
+        uint256 tokenId = 1;
+        uint256 unlockTime = block.timestamp + 1000;
+        vm.prank(ccipHandler);
+        rpgItemNFT.setTokenLockStatus(tokenId, unlockTime);
+        assertEq(rpgItemNFT.tokenLockedTill(tokenId), unlockTime);
+    }
+
+     function testSetSign() public {
+        vm.startPrank(owner);
+        rpgItemNFT.setSign(12345);
+        assertEq(rpgItemNFT.sign(), 12345);
+        vm.stopPrank();
+    }
+
+    function testSetWhitelisted() public {
+        vm.startPrank(owner);
+        rpgItemNFT.setWhitelisted(user, true);
+        assertTrue(rpgItemNFT.whitelisted(user));
+        vm.stopPrank();
+    }
+
+    function testChangeCCIP() public {
+        vm.startPrank(owner);
+        address newCCIP = address(0x4);
+        rpgItemNFT.changeCCIP(newCCIP);
+        assertEq(rpgItemNFT._ccipHandler(), newCCIP);
+        vm.stopPrank();
+    }
+
+    function testChangeURI() public {
+        vm.startPrank(owner);
+        address newURI = address(0x5);
+        rpgItemNFT.changeURI(newURI);
+        assertEq(rpgItemNFT.uriAddress(), newURI);
+        vm.stopPrank();
+    }
+
+    function testChangeImageUrl() public {
+        vm.startPrank(owner);
+        string memory newImageUrl = "https://newimage.url";
+        rpgItemNFT.changeImageUrl(newImageUrl);
+        assertEq(rpgItemNFT.itemImage(), newImageUrl);
+        vm.stopPrank();
+    }
+
+    function testSetMintPrice() public {
+        vm.startPrank(owner);
+        rpgItemNFT.setMintPrice(200000);
+        assertEq(rpgItemNFT.mintPrice(), 200000);
+        vm.expectRevert(Errors.ZeroInput.selector);
+        rpgItemNFT.setMintPrice(0);
+        vm.stopPrank();
+    }
+
+    function testSetUpgradePrice() public {
+        vm.startPrank(owner);
+        rpgItemNFT.setWhitelisted(user, true);
+        vm.stopPrank();
+
+        vm.startPrank(user);
+        rpgItemNFT.setUpgradePrice(50000);
+        assertEq(rpgItemNFT.upgradePricing(user), 50000);
+        vm.stopPrank();
+    }
+
+    
+    // function testGetTokenStats() public {
+    //     vm.prank(ccipHandler);
+    //     rpgItemNFT.updateStats(1000000, newOwner, 5, 5, 5);
+    //     (uint8 stat1, uint8 stat2, uint8 stat3) = rpgItemNFT.getTokenStats(1000000);
+    //     assertEq(stat1, 15);
+    //     assertEq(stat2, 25);
+    //     assertEq(stat3, 35);
+    // }
+
+    //   function testUpdateStats() public {
+    //     vm.prank(ccipHandler);
+    //     bool success = rpgItemNFT.updateStats(1000000, newOwner, 5, 5, 5);
+    //     assertTrue(success);
+    //     (uint8 stat1, uint8 stat2, uint8 stat3) = rpgItemNFT.getTokenStats(1000000);
+    //     assertEq(stat1, 15);
+    //     assertEq(stat2, 25);
+    //     assertEq(stat3, 35);
+    // }
+
+
+
+
+
 
 
 
