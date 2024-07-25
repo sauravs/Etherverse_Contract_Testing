@@ -7,6 +7,7 @@ interface Asset {
         uint8 stat2;
         uint8 stat3;
     }
+
     enum Type {
         Weapon,
         Armor,

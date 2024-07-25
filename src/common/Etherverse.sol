@@ -9,31 +9,20 @@ import "@openzeppelin/contracts/utils/ReentrancyGuard.sol";
 // TO-DO: Add AccessControl
 contract EtherverseUser is ReentrancyGuard {
     using SafeERC20 for IERC20;
+
     address public etherverse;
     address public user;
     address private candidate;
     uint256 private candidateTimeout;
     uint256 public etherverseFee;
 
-    event CandidateProposed(
-        address indexed currentUser,
-        address indexed candidate,
-        uint256 timestamp
-    );
+    event CandidateProposed(address indexed currentUser, address indexed candidate, uint256 timestamp);
     event ProposalAccepted(address indexed newUser, uint256 timestamp);
 
     event EtherWithdraw(uint256 indexed amount, uint256 indexed timestamp);
-    event ERC20Withdraw(
-        address indexed token,
-        uint256 indexed amount,
-        uint256 indexed timestamp
-    );
+    event ERC20Withdraw(address indexed token, uint256 indexed amount, uint256 indexed timestamp);
 
-    constructor(
-        address _etherverse,
-        address _user,
-        uint256 _fee
-    ) {
+    constructor(address _etherverse, address _user, uint256 _fee) {
         etherverse = _etherverse;
         // 0x0C903F1C518724CBF9D00b18C2Db5341fF68269C;
         user = _user;
@@ -65,10 +54,7 @@ contract EtherverseUser is ReentrancyGuard {
         emit ProposalAccepted(user, block.timestamp);
     }
 
-    function withdraw(address _token, uint256 _percentage)
-        external
-        nonReentrant
-    {
+    function withdraw(address _token, uint256 _percentage) external nonReentrant {
         require(_percentage < 100, "Invalid percentage");
         if (_token == address(0)) {
             uint256 amount = (address(this).balance * _percentage) / 100;
@@ -79,8 +65,7 @@ contract EtherverseUser is ReentrancyGuard {
             emit EtherWithdraw(balance, block.timestamp);
         } else {
             IERC20 token = IERC20(_token);
-            uint256 amount = (token.balanceOf(address(this)) * _percentage) /
-                100;
+            uint256 amount = (token.balanceOf(address(this)) * _percentage) / 100;
             uint256 fee = (amount * etherverseFee) / 10000;
             token.safeTransfer(etherverse, (amount * etherverseFee) / 10000);
             uint256 balance = amount - fee;

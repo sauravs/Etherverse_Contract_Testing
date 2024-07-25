@@ -9,12 +9,13 @@ import "../nft/interface/IRPG.sol";
 import {Upgrade} from "../nft/lib/RPGStruct.sol";
 import "../common/Etherverse.sol";
 
-
-// TO-DO: Decide on which approach to take for making sure the functions are only called by valid users. 
+// TO-DO: Decide on which approach to take for making sure the functions are only called by valid users.
 contract Game is EtherverseUser, ERC721Holder {
     using SafeERC20 for IERC20;
+
     IERC20 public USDC;
     string public name;
+
     struct Order {
         address nft;
         uint256 tokenId;
@@ -38,29 +39,20 @@ contract Game is EtherverseUser, ERC721Holder {
     address public upgradeAddress;
     mapping(uint256 => Order) public orders;
 
-    event OrderCreated(
-        uint256 indexed orderId,
-        address indexed seller,
-        uint256 indexed timestamp
-    );
-    event OrderExecuted(
-        uint256 indexed orderId,
-        address indexed buyer,
-        uint256 indexed timestamp
-    );
+    event OrderCreated(uint256 indexed orderId, address indexed seller, uint256 indexed timestamp);
+    event OrderExecuted(uint256 indexed orderId, address indexed buyer, uint256 indexed timestamp);
 
     // TO-DO: Need to use rolebased access control instead of this
     modifier onlyEtherverse() {
         require(msg.sender == etherverse, "UnauthorizedAccess");
         _;
     }
+
     modifier etherverseOrGameDev() {
-        require(
-            msg.sender == etherverse || msg.sender == user,
-            "UnauthorizedAccess"
-        );
+        require(msg.sender == etherverse || msg.sender == user, "UnauthorizedAccess");
         _;
     }
+
     modifier onlyGameDev() {
         require(msg.sender == user, "UnauthorizedAccess");
         _;
@@ -84,27 +76,15 @@ contract Game is EtherverseUser, ERC721Holder {
         upgradeAddress = _upgrade;
     }
 
-    function createOrder(
-        address _nft,
-        uint256 _tokenId,
-        uint256 _price
-    ) external nonReentrant {
+    function createOrder(address _nft, uint256 _tokenId, uint256 _price) external nonReentrant {
         require(_nft != address(0), "Invalid Address");
         IERC721 nft = IERC721(_nft);
         require(
-            nft.getApproved(_tokenId) == address(this) ||
-                nft.isApprovedForAll(nft.ownerOf(_tokenId), address(this)),
+            nft.getApproved(_tokenId) == address(this) || nft.isApprovedForAll(nft.ownerOf(_tokenId), address(this)),
             "Contract not approved to transfer NFT"
         );
 
-        orders[orderCount] = Order(
-            _nft,
-            _tokenId,
-            _price - marketFee,
-            marketFee,
-            _price,
-            0
-        );
+        orders[orderCount] = Order(_nft, _tokenId, _price - marketFee, marketFee, _price, 0);
         emit OrderCreated(orderCount, msg.sender, block.timestamp);
         orderCount++;
     }
@@ -142,18 +122,11 @@ contract Game is EtherverseUser, ERC721Holder {
         upgradeAddress = _upgrade;
     }
 
-    function setUpgradePrice(address _nft, uint256 _price)
-        external
-        etherverseOrGameDev
-    {
+    function setUpgradePrice(address _nft, uint256 _price) external etherverseOrGameDev {
         IRPGV1(_nft).setUpgradePrice(_price);
     }
 
-    function mint(
-        address _nft,
-        address to,
-        bytes memory authorizationParams
-    ) external {
+    function mint(address _nft, address to, bytes memory authorizationParams) external {
         IRPGV1(_nft).mint(to, authorizationParams);
     }
 
@@ -161,19 +134,11 @@ contract Game is EtherverseUser, ERC721Holder {
         IRPGV1(_nft).freeUpgrade(tokenId);
     }
 
-    function paidUpgrade(
-        address _nft,
-        uint256 tokenId,
-        bytes memory authorizationParams
-    ) external {
+    function paidUpgrade(address _nft, uint256 tokenId, bytes memory authorizationParams) external {
         IRPGV1(_nft).paidUpgrade(tokenId, authorizationParams);
     }
 
-    function nextUpgrade(
-        address _nft,
-        uint256 tokenId,
-        Upgrade.Type _type
-    ) external view {
+    function nextUpgrade(address _nft, uint256 tokenId, Upgrade.Type _type) external view {
         IRPGV1(_nft).nextUpgrade(tokenId, _type);
     }
 
@@ -181,11 +146,7 @@ contract Game is EtherverseUser, ERC721Holder {
         IRPGV1(_nft).nextUpgradePrice(tokenId);
     }
 
-    function resetUpgradesForNFT(
-        address _nft,
-        uint256 tokenId,
-        address rewardNFT
-    ) external nonReentrant onlyGameDev {
+    function resetUpgradesForNFT(address _nft, uint256 tokenId, address rewardNFT) external nonReentrant onlyGameDev {
         address tokenOwner = IRPGV1(_nft).getOwner(tokenId);
         USDC.safeIncreaseAllowance(_nft, IRPGV1(_nft).mintPrice());
         uint256 rewardToken = IRPGV1(rewardNFT).mint(address(this), "");
@@ -194,11 +155,7 @@ contract Game is EtherverseUser, ERC721Holder {
         IRPGV1(_nft).resetUpgrades(tokenId);
     }
 
-    function resetUpgradesForUSDC(
-        address _nft,
-        uint256 tokenId,
-        uint256 amount
-    ) external nonReentrant onlyGameDev {
+    function resetUpgradesForUSDC(address _nft, uint256 tokenId, uint256 amount) external nonReentrant onlyGameDev {
         address tokenOwner = IRPGV1(_nft).getOwner(tokenId);
         require(amount > IRPGV1(_nft).mintPrice(), "Reward amount is too low");
         USDC.safeTransfer(tokenOwner, amount);

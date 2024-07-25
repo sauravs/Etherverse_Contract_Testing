@@ -16,6 +16,19 @@ IUpgradeV1.sol
 
 ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
+RPG.sol : mint isWhitelisted()
+
+// @dev Any function with this modifier can only be called by a whitelisted marketplace contract
+    modifier isWhitelisted(address _address) {
+        if (!whitelisted[_address])
+            revert Errors.CallerMustBeWhitelisted(_address);
+        _;
+    }
+
+    Q: so mint should only be called by contract?
+
+
+    
 
 
 

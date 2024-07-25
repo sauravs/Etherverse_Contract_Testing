@@ -6,9 +6,7 @@ import "@openzeppelin/contracts/token/ERC20/utils/SafeERC20.sol";
 import "../common/Etherverse.sol";
 
 contract AssetCreator is EtherverseUser {
-    constructor(
-        address _etherverse,
-        address _owner,
-        uint256 _etherverseFee
-    ) EtherverseUser(_etherverse, _owner, _etherverseFee) {}
+    constructor(address _etherverse, address _owner, uint256 _etherverseFee)
+        EtherverseUser(_etherverse, _owner, _etherverseFee)
+    {}
 }
