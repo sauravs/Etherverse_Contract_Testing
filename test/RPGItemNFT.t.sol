@@ -480,6 +480,115 @@ contract RPGItemNFTTest is Test {
 
     }
 
+     function testGetStatValid() public {
+        
+         // mint the NFT 
+
+
+        vm.prank(whitelisted_user1);
+        // approve the RPGItemNFT contract to spend 0.1 USDC on behalf of the whitelisted_user1
+
+        usdc.approve(address(rpgItemNFT), 100000);
+
+        //mint the NFT to whitelisted_user1 by the whitelisted_user1
+
+         vm.prank(whitelisted_user1);
+        uint256 tokenId = rpgItemNFT.mint(whitelisted_user1, emptyAuthParams);
+
+        //assert that the tokenId is 1000000
+
+        assertEq(tokenId, 1000000);
+
+        // assert that whitelisted_user1 is the owner of the minted tokenId
+
+        assertEq(rpgItemNFT.ownerOf(tokenId), whitelisted_user1);
+        
+        uint8 stat = rpgItemNFT.getStat(Asset.StatType.STR, tokenId);
+        assertEq(stat, 10); 
+
+        uint8 stat2 = rpgItemNFT.getStat(Asset.StatType.CON, tokenId);
+        assertEq(stat2, 20); 
+
+        uint8 stat3 = rpgItemNFT.getStat(Asset.StatType.DEX, tokenId);
+        assertEq(stat3, 30); 
+    }
+
+      function testGetStatNotMinted() public {
+        uint256 tokenId = 1;
+        vm.expectRevert(Errors.NotMinted.selector);
+        rpgItemNFT.getStat(Asset.StatType.STR, tokenId + 1);
+    }
+    
+    
+    function testGetStatLocked() public {
+       // mint the NFT 
+
+
+        vm.prank(whitelisted_user1);
+        // approve the RPGItemNFT contract to spend 0.1 USDC on behalf of the whitelisted_user1
+
+        usdc.approve(address(rpgItemNFT), 100000);
+
+        //mint the NFT to whitelisted_user1 by the whitelisted_user1
+
+         vm.prank(whitelisted_user1);
+        uint256 tokenId = rpgItemNFT.mint(whitelisted_user1, emptyAuthParams);
+
+        //assert that the tokenId is 1000000
+
+        assertEq(tokenId, 1000000);
+
+        // assert that whitelisted_user1 is the owner of the minted tokenId
+
+        assertEq(rpgItemNFT.ownerOf(tokenId), whitelisted_user1);
+   
+        
+          vm.prank(ccipHandler);
+
+          rpgItemNFT.setTokenLockStatus(tokenId, block.timestamp + 1 days);
+
+          //check lockstatus
+
+        assertEq(rpgItemNFT.lockStatus(tokenId), true);
+
+
+          vm.expectRevert(abi.encodeWithSelector(Errors.Locked.selector, tokenId, block.timestamp));
+          rpgItemNFT.getStat(Asset.StatType.STR, tokenId);
+        
+
+    }
+
+
+      function skiptestTokenURIValid() public {
+
+      // mint the NFT 
+
+
+        vm.prank(whitelisted_user1);
+        // approve the RPGItemNFT contract to spend 0.1 USDC on behalf of the whitelisted_user1
+
+        usdc.approve(address(rpgItemNFT), 100000);
+
+        //mint the NFT to whitelisted_user1 by the whitelisted_user1
+
+         vm.prank(whitelisted_user1);
+        uint256 tokenId = rpgItemNFT.mint(whitelisted_user1, emptyAuthParams);
+
+        //assert that the tokenId is 1000000
+
+        assertEq(tokenId, 1000000);
+
+        // assert that whitelisted_user1 is the owner of the minted tokenId
+
+        assertEq(rpgItemNFT.ownerOf(tokenId), whitelisted_user1);
+   
+
+
+
+        string memory uri = rpgItemNFT.tokenURI(tokenId);
+        assertEq(uri, "https://ipfs.io/ipfs/QmVQ2vpBD1U6P22V2xaHk5KF5x6mQAM7HmFsc8c2AsQhgo");
+    }
+
     
 
 }
