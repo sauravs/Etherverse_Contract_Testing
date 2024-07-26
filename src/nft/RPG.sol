@@ -175,7 +175,9 @@ contract RPGItemNFT is ERC721, Ownable, ReentrancyGuard {
         external
         nonZeroAddress(newOwner)
         onlyCCIPRouter
-        returns (bool)  //@tester : related to CCIP ? to transfer stats to other chain? why isTokenMinted check is not used here?
+        returns (
+            bool //@tester : related to CCIP ? to transfer stats to other chain? why isTokenMinted check is not used here?
+        )
     {
         address currentOwner = ownerOf(tokenId);
 
@@ -296,14 +298,16 @@ contract RPGItemNFT is ERC721, Ownable, ReentrancyGuard {
         return _ownerOf(tokenId); //@tester no need of this function we can directly fetch owner detail with ownerOf(tokenID)
     }
 
-
-  //@tester: why both transferFrom and safeTransferFrom provided??
+    //@tester: why both transferFrom and safeTransferFrom provided??
     function transferFrom(address from, address to, uint256 tokenId)
         public
         override
         nonZeroAddress(to)
         isUnlocked(tokenId)
-        nonReentrant
+        
+
+         //@tester : remove the nononReentrant gaurd from     transferFrom
+        
     {
         super.transferFrom(from, to, tokenId);
     }
@@ -311,11 +315,13 @@ contract RPGItemNFT is ERC721, Ownable, ReentrancyGuard {
     function safeTransferFrom(address from, address to, uint256 tokenId, bytes memory data)
         public
         override
-        nonZeroAddress(to)
-        isUnlocked(tokenId)
         nonReentrant
-    {
+        nonZeroAddress(to)
+        isUnlocked(tokenId) {  
+
         super.safeTransferFrom(from, to, tokenId, data);
+
+        
     }
 
     function ccipTransfer(address from, address to, uint256 tokenId)
