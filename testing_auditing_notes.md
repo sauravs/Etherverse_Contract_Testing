@@ -32,6 +32,8 @@ RPG.sol : mint isWhitelisted()
 
    function freeUpgrade(uint256 tokenId) : 
 
+   same for paidUpgrade() and resetUpgrades()
+
 /@tester: if token minted check is here,then their is no need of isWhitelisted modifier,because only whitelisted user can mint 
 
 //@tester: if token is minted
