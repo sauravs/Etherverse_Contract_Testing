@@ -696,24 +696,122 @@ contract RPGItemNFTTest is Test {
         assertEq(rpgItemNFT.ownerOf(tokenId), whitelisted_user1);
 
         // check the USDC balance of contract RPGItemNFT
-       // after minting the NFT // it should be 50% of minting price which assetcreator can withdraw
+       // after minting the NFT // it should be 50% of minting price which assetcreator can withdraw ,which
+       //should come 0.05$
 
         assertEq(IERC20(usdc).balanceOf(address(rpgItemNFT)), 50000);
 
-   
-        // vm.startPrank(owner);
-        // IERC20(usdcToken).transfer(address(rpgItemNFT), 1000);
-        // rpgItemNFT.withdraw(usdcToken);
-        // assertEq(IERC20(usdcToken).balanceOf(owner), 1000);
-        // vm.stopPrank();
+        //prank assetWalletAddress and then withdraw
+
+        vm.prank(rpgItemNFT.assetCreatorWallet());
+
+        rpgItemNFT.withdraw(address(usdc));
+
+        // check balance of assetWalletAddress after withdraw
+
+        assertEq(IERC20(usdc).balanceOf(rpgItemNFT.assetCreatorWallet()), 50000);
+
+
     }
 
-    // function testWithdrawNonZeroAddress() public {
-    //     vm.startPrank(owner);
-    //     vm.expectRevert(Errors.ZeroAddress.selector);
-    //     rpgItemNFT.withdraw(address(0));
-    //     vm.stopPrank();
-    // }
+    function skiptestFreeUpgradeSuccess__Failing() public {
+    // mint the nft first
+    vm.prank(whitelisted_user1);
+    usdc.approve(address(rpgItemNFT), 100000);
+
+    vm.prank(whitelisted_user1);
+    uint256 tokenId = rpgItemNFT.mint(whitelisted_user1, emptyAuthParams);
+    assertEq(rpgItemNFT.ownerOf(tokenId), whitelisted_user1);
+
+    vm.prank(whitelisted_user1);
+    rpgItemNFT.freeUpgrade(tokenId);
+
+    (uint8 stat1, uint8 stat2, uint8 stat3) = rpgItemNFT.upgradeMapping(tokenId);
+    Asset.Stat memory upgradedStat = Asset.Stat(stat1, stat2, stat3);
+
+    assertEq(upgradedStat.stat1, 12); 
+    assertEq(upgradedStat.stat2, 22); 
+    assertEq(upgradedStat.stat3, 32); 
+}
+
+
+  function skiptestFreeUpgradeRevertNotWhitelisted__Failing() public {
+        
+        
+        // set the mint price to 0.1 USDC(USDC has 6 decimals)
+        vm.prank(owner);
+        rpgItemNFT.setMintPrice(100000);
+
+
+        // top up the minter1 account with 0.1 ether for purpose of paying transaction fee
+        vm.deal(minter1, 100000000000000000);
+
+        // assert that the minter1 account has 0.1 ether
+
+        assertEq(address(minter1).balance, 100000000000000000);
+
+        // aprove the RPGItemNFT contract to spend 0.1 USDC on behalf of the minter1
+
+        vm.prank(minter1);
+        usdc.approve(address(rpgItemNFT), 100000);
+        
+    
+    vm.prank(minter1);
+    usdc.approve(address(rpgItemNFT), 100000);
+   
+   // mint the NFT
+    vm.prank(minter1);
+    uint256 tokenId = rpgItemNFT.mint(minter1, emptyAuthParams);
+    assertEq(rpgItemNFT.ownerOf(tokenId), minter1);
+        
+        
+        // vm.prank(minter1);
+        // vm.expectRevert(abi.encodeWithSelector(Errors.CallerMustBeWhitelisted.selector, nonWhitelistedUser));
+        // rpgItemNFT.freeUpgrade(tokenId);
+    }
+
+     function testFreeUpgradeRevertNotMinted() public {
+
+        vm.prank(whitelisted_user1);
+
+        vm.expectRevert(Errors.NotMinted.selector);
+        rpgItemNFT.freeUpgrade(9999999);
+
+
 
 }
 
+
+function testPaidUpgradeSuccess() public {
+    // mint the nft first
+    vm.prank(whitelisted_user1);
+    usdc.approve(address(rpgItemNFT), 100000);
+
+    vm.prank(whitelisted_user1);
+    uint256 tokenId = rpgItemNFT.mint(whitelisted_user1, emptyAuthParams);
+    assertEq(rpgItemNFT.ownerOf(tokenId), whitelisted_user1);
+
+    vm.prank(whitelisted_user1);
+    rpgItemNFT.paidUpgrade(tokenId, emptyAuthParams);
+
+    (uint8 stat1, uint8 stat2, uint8 stat3) = rpgItemNFT.upgradeMapping(tokenId);
+    Asset.Stat memory upgradedStat = Asset.Stat(stat1, stat2, stat3);
+
+    assertEq(upgradedStat.stat1, 15); 
+    assertEq(upgradedStat.stat2, 25); 
+    assertEq(upgradedStat.stat3, 35); 
+
+
+
+}
+
+
+// function testPaidUpgradeRevertNotMinted() public {
+//     vm.expectRevert(Errors.NotMinted.selector);
+//     rpgItemNFT.paidUpgrade(9999999, emptyAuthParams);
+
+
+
+// }
+
+}

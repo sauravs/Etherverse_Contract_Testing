@@ -26,6 +26,37 @@ RPG.sol : mint isWhitelisted()
     }
 
     Q: so mint should only be called by contract?
+///////////////////////////////////////////////////
+
+   Issues:
+
+   function freeUpgrade(uint256 tokenId) : 
+
+/@tester: if token minted check is here,then their is no need of isWhitelisted modifier,because only whitelisted user can mint 
+
+//@tester: if token is minted
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
 
 
     

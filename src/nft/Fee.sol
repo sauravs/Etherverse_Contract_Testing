@@ -25,7 +25,7 @@ library Fee {
 
     function withdraw(address assetCreator, address token) public {
         if (token == address(0)) {
-            payable(assetCreator).transfer(address(this).balance);
+            payable(assetCreator).transfer(address(this).balance); //@tester what is the use of token == address(0) check,what it is doing here
         } else {
             IUSDC USDCToken = IUSDC(token);
             // uint256 amount = USDCToken.balanceOf(address(this));

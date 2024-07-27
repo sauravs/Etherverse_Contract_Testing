@@ -212,7 +212,7 @@ contract RPGItemNFT is ERC721, Ownable, ReentrancyGuard {
         return IImage(uriAddress).tokenURI(tokenId);
     }
 
-    function freeUpgrade(uint256 tokenId)
+    function freeUpgrade(uint256 tokenId)  //@tester: if token minted check is here,then their is no need of isWhitelisted modifier,because only whitelisted user can mint 
         external
         isWhitelisted(msg.sender)
         isTokenMinted(tokenId)
