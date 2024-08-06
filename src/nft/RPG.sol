@@ -212,12 +212,9 @@ contract RPGItemNFT is ERC721, Ownable, ReentrancyGuard {
         return IImage(uriAddress).tokenURI(tokenId);
     }
 
-    function freeUpgrade(uint256 tokenId)  //@tester: if token minted check is here,then their is no need of isWhitelisted modifier,because only whitelisted user can mint 
-        external
-        isWhitelisted(msg.sender)
-        isTokenMinted(tokenId)
-        isUnlocked(tokenId)
-    {
+    function freeUpgrade(
+        uint256 tokenId //@tester: if token minted check is here,then their is no need of isWhitelisted modifier,because only whitelisted user can mint
+    ) external isWhitelisted(msg.sender) isTokenMinted(tokenId) isUnlocked(tokenId) {
         upgradeMapping[tokenId] = _getUpgradeModule(msg.sender).calculateUpgrade(upgradeMapping[tokenId], 2);
     }
 
@@ -245,7 +242,7 @@ contract RPGItemNFT is ERC721, Ownable, ReentrancyGuard {
         isWhitelisted(msg.sender)
         isTokenMinted(tokenId)
         isUnlocked(tokenId)
-        returns (Asset.Stat memory)
+        returns (Asset.Stat memory)  // Read only function
     {
         if (_type == Upgrade.Type.Free) {
             return _getUpgradeModule(msg.sender).calculateStat(upgradeMapping[tokenId], 2);
@@ -262,7 +259,7 @@ contract RPGItemNFT is ERC721, Ownable, ReentrancyGuard {
         isTokenMinted(tokenId)
         isUnlocked(tokenId)
         isWhitelisted(msg.sender)
-        returns (uint256)
+        returns (uint256)   // Read only function
     {
         return _getUpgradeModule(msg.sender).calculatePrice(upgradePricing[msg.sender], upgradeMapping[tokenId]);
     }
@@ -304,10 +301,7 @@ contract RPGItemNFT is ERC721, Ownable, ReentrancyGuard {
         override
         nonZeroAddress(to)
         isUnlocked(tokenId)
-        
-
-         //@tester : remove the nononReentrant gaurd from     transferFrom
-        
+    //@tester : remove the nononReentrant gaurd from     transferFrom
     {
         super.transferFrom(from, to, tokenId);
     }
@@ -317,11 +311,9 @@ contract RPGItemNFT is ERC721, Ownable, ReentrancyGuard {
         override
         nonReentrant
         nonZeroAddress(to)
-        isUnlocked(tokenId) {  
-
+        isUnlocked(tokenId)
+    {
         super.safeTransferFrom(from, to, tokenId, data);
-
-        
     }
 
     function ccipTransfer(address from, address to, uint256 tokenId)

@@ -39,6 +39,9 @@ RPG.sol : mint isWhitelisted()
 //@tester: if token is minted
 
 
+difference between free and paid upgrade is +2 and +5?
+
+
 
 
 
