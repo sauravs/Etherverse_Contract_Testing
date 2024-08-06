@@ -242,7 +242,9 @@ contract RPGItemNFT is ERC721, Ownable, ReentrancyGuard {
         isWhitelisted(msg.sender)
         isTokenMinted(tokenId)
         isUnlocked(tokenId)
-        returns (Asset.Stat memory)  // Read only function
+        returns (
+            Asset.Stat memory // Read only function
+        )
     {
         if (_type == Upgrade.Type.Free) {
             return _getUpgradeModule(msg.sender).calculateStat(upgradeMapping[tokenId], 2);
@@ -259,7 +261,9 @@ contract RPGItemNFT is ERC721, Ownable, ReentrancyGuard {
         isTokenMinted(tokenId)
         isUnlocked(tokenId)
         isWhitelisted(msg.sender)
-        returns (uint256)   // Read only function
+        returns (
+            uint256 // Read only function
+        )
     {
         return _getUpgradeModule(msg.sender).calculatePrice(upgradePricing[msg.sender], upgradeMapping[tokenId]);
     }

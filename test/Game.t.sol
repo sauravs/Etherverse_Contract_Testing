@@ -2,8 +2,11 @@
 pragma solidity 0.8.24;
 
 import "forge-std/Test.sol";
-import "../src/misc/Game.sol"; 
-contract GameTest is Test {
+import "../src/misc/Game.sol";
+import "@openzeppelin/contracts/token/ERC721/IERC721Receiver.sol";
+
+
+contract GameTest is Test,IERC721Receiver {
     Game game;
     address etherverse = address(0x0C903F1C518724CBF9D00b18C2Db5341fF68269C);
     address owner = address(0x7);
@@ -31,4 +34,14 @@ contract GameTest is Test {
         assertEq(game.upgradeAddress(), upgrade);
     }
 
+     // Implement the onERC721Received function
+    function onERC721Received(
+        address operator,
+        address from,
+        uint256 tokenId,
+        bytes calldata data
+    ) external override returns (bytes4) {
+        // Return the selector to confirm the token transfer
+        return this.onERC721Received.selector;
+    }
 }

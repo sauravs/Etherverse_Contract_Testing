@@ -59,14 +59,13 @@ contract Game is EtherverseUser, ERC721Holder {
     }
 
     constructor(
-        address _etherverse,  //external wallet fee collector address which will be pridevel wallet //eg  0x0C903F1C518724CBF9D00b18C2Db5341fF68269C
+        address _etherverse, //external wallet fee collector address which will be pridevel wallet //eg  0x0C903F1C518724CBF9D00b18C2Db5341fF68269C
         address _owner, // web3tech backend pvt key store on web3tech server // eg address public web3Tech_backend = address(0x7);
         address _usdcToken, // eg 0x2a9e8fa175F45b235efDdD97d2727741EF4Eee63
-        address _upgrade,  // as of now deployment address of UpgradeV1 // eg 0xFEfC6BAF87cF3684058D62Da40Ff3A795946Ab06
-        uint256 _marketFee,  // what commission does the game take which  ingame fees collected by game developer // eg  42.69% 4269 =
+        address _upgrade, // as of now deployment address of UpgradeV1 // eg 0xFEfC6BAF87cF3684058D62Da40Ff3A795946Ab06
+        uint256 _marketFee, // what commission does the game take which  ingame fees collected by game developer // eg  42.69% 4269 =
         uint256 _etherverseFee, // web3tech platform fee // 9% 900
-        string memory _name   //name of game // eg "GTA"
-
+        string memory _name //name of game // eg "GTA"
     ) EtherverseUser(_etherverse, _owner, _etherverseFee) {
         name = _name;
         // "Game Name";
@@ -162,9 +161,4 @@ contract Game is EtherverseUser, ERC721Holder {
         USDC.safeTransfer(tokenOwner, amount);
         IRPGV1(_nft).resetUpgrades(tokenId);
     }
-
-    
-
-
-
 }

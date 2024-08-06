@@ -15,7 +15,6 @@ contract UpgradeV1Test is Test {
         //console.log("UpgradeV1 address: ", address(upgradeV1));
     }
 
-   
     function testCalculateUpgrade() public {
         Asset.Stat memory stat = Asset.Stat({stat1: 10, stat2: 20, stat3: 30});
         Asset.Stat memory newStat = upgradeV1.calculateUpgrade(stat, 5);
@@ -32,15 +31,12 @@ contract UpgradeV1Test is Test {
         assertEq(newStat.stat3, 35);
     }
 
-
     function testCalculatePrice() public {
         Asset.Stat memory stat = Asset.Stat({stat1: 10, stat2: 20, stat3: 30});
         uint256 price = upgradeV1.calculatePrice(100, stat);
         assertEq(price, 2000);
     }
 
-    
-    
     function testGetStat() public {
         // Mock the IRPGV1 interface
         IRPGV1 nft = IRPGV1(address(this));
@@ -72,7 +68,7 @@ contract UpgradeV1Test is Test {
         uint8 stat2 = upgradeV1.getStat(statLabel2, tokenId);
         assertEq(stat2, 25);
 
-         Asset.StatType statLabel3 = Asset.StatType.CON;
+        Asset.StatType statLabel3 = Asset.StatType.CON;
 
         uint8 stat3 = upgradeV1.getStat(statLabel3, tokenId);
         assertEq(stat3, 35);

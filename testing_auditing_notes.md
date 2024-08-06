@@ -42,6 +42,38 @@ RPG.sol : mint isWhitelisted()
 difference between free and paid upgrade is +2 and +5?
 
 
+////////////////////////////////////////////////////////////
+
+Game.sol while minting NFT ->
+ERC721InvalidReceiver
+
+// SPDX-License-Identifier: MIT
+pragma solidity ^0.8.0;
+
+import "@openzeppelin/contracts/token/ERC721/IERC721Receiver.sol";
+
+contract GameTest is IERC721Receiver {
+    // Implement the onERC721Received function
+    function onERC721Received(
+        address operator,
+        address from,
+        uint256 tokenId,
+        bytes calldata data
+    ) external override returns (bytes4) {
+        // Return the selector to confirm the token transfer
+        return this.onERC721Received.selector;
+    }
+}
+
+
+
+
+
+
+
+
+
+
 
 
 
