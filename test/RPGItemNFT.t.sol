@@ -13,6 +13,7 @@ import "../src/misc/Game.sol";
 import "../src/nft/helpers/UpgradeV1.sol";
 import "./Game.t.sol";
 
+
 contract RPGItemNFTTest is Test {
     RPGItemNFT public rpgItemNFT;
     address public owner = 0x762aD31Ff4bD1ceb5b3b5868672d5CBEaEf609dF;
@@ -22,10 +23,21 @@ contract RPGItemNFTTest is Test {
     address public minter1 = address(0x5);
     address public minter2 = address(0x6);
     address public nonWhitelistedUser = address(0x3);
-
     address public whitelistedGameContract;
 
-    address public web3Tech_backend = address(0x7);
+   // Game.sol Related
+         Game public game;
+        address public etherverse = address(0x0C903F1C518724CBF9D00b18C2Db5341fF68269C);  //external wallet fee collector address which will be pridevel wallet
+    address public owner_web3tech = address(0x7); //// web3tech backend pvt key store on web3tech server
+    address public upgradeV1ContractAddress ; //eployment address of UpgradeV1
+    uint256 public marketFee = 4269; // what commission does the game take which  ingame fees collected by game developer // eg  42.69% 4269
+    uint256 public etherverseFee = 900; // web3tech platform fee // 9% 900
+    string  public gamename = "GTA"; // name of the game
+
+
+
+
+
 
     MockUSDC public usdc;
     GameTest public gameTest;
@@ -38,28 +50,46 @@ contract RPGItemNFTTest is Test {
         rpgItemNFT = new RPGItemNFT();
         vm.stopPrank();
 
+         // Deploy Mock USDC token
+        usdc = new MockUSDC();
+        console.log("USDC address: ", address(usdc));
+        //0xFEfC6BAF87cF3684058D62Da40Ff3A795946Ab06
+
+
         // deploy UpgradeV1.sol
 
         UpgradeV1 upgradeV1 = new UpgradeV1();
-        //console.log("UpgradeV1 address: ", address(upgradeV1));
+        console.log("UpgradeV1 address: ", address(upgradeV1));
         // upgradeV1 = 0xFEfC6BAF87cF3684058D62Da40Ff3A795946Ab06;
 
-        // Deploy Game.sol using GameTest
-        gameTest = new GameTest();
+        upgradeV1ContractAddress = address(upgradeV1);
+
+
+      // deploy Game.sol    
+
+        game = new Game(etherverse, owner_web3tech, address(usdc), address(upgradeV1), marketFee, etherverseFee, gamename);
+
+        console.log("Game contract address: ", address(game));
+
+
+        whitelistedGameContract = address(game);
+
+
+
+        // Deploy GameTest.sol using GameTest
+        // gameTest = new GameTest();
         // console.log("Game contract address from GameTest: ", address(gameTest)); // 0x2a9e8fa175F45b235efDdD97d2727741EF4Eee63
 
-        whitelistedGameContract = address(gameTest);
+        //whitelistedGameContract = address(gameTest);
 
         // console.log("Game contract address from GameTest: ", whitelistedGameContract); // 0x2a9e8fa175F45b235efDdD97d2727741EF4Eee63
 
-        // Deploy Mock USDC token
-        usdc = new MockUSDC();
+       
 
         // Set the USDC address in the RPGItemNFT contract
         vm.prank(owner);
         rpgItemNFT.setUSDC(address(usdc));
 
-        //console.log("USDC address: ", address(usdc));
 
         // 100000 USDC with 6 decimals
 
@@ -95,7 +125,7 @@ contract RPGItemNFTTest is Test {
         assertEq(rpgItemNFT.symbol(), "SW");
         assertEq(rpgItemNFT.etherverseWallet(), 0x0C903F1C518724CBF9D00b18C2Db5341fF68269C);
         assertEq(rpgItemNFT.assetCreatorWallet(), 0xa1293A8bFf9323aAd0419E46Dd9846Cc7363D44b);
-        assertEq(rpgItemNFT.USDC(), 0x72384992222BE015DE0146a6D7E5dA0E19d2Ba49);
+        assertEq(rpgItemNFT.USDC(), 0xFEfC6BAF87cF3684058D62Da40Ff3A795946Ab06);
         // assertEq(rpgItemNFT.baseStat().stat1, 10);
         // assertEq(rpgItemNFT.baseStat().stat2, 20);
         // assertEq(rpgItemNFT.baseStat().stat3, 30);
@@ -727,52 +757,52 @@ contract RPGItemNFTTest is Test {
             rpgItemNFT.safeTransferFrom(whitelistedGameContract, minter1, tokenId, "");
         }
 
-    //     function testWithdraw() public {
-    //         // mint the nft first
+        function testWithdraw() public {
+            // mint the nft first
 
-    //         vm.prank(whitelisted_user1);
-    //         usdc.approve(address(rpgItemNFT), 100000);
+            vm.prank(whitelistedGameContract);
+            usdc.approve(address(rpgItemNFT), 100000);
 
-    //         vm.prank(whitelisted_user1);
-    //         uint256 tokenId = rpgItemNFT.mint(whitelisted_user1, emptyAuthParams);
-    //         assertEq(rpgItemNFT.ownerOf(tokenId), whitelisted_user1);
+            vm.prank(whitelistedGameContract);
+            uint256 tokenId = rpgItemNFT.mint(whitelistedGameContract, emptyAuthParams);
+            assertEq(rpgItemNFT.ownerOf(tokenId), whitelistedGameContract);
 
-    //         // check the USDC balance of contract RPGItemNFT
-    //         // after minting the NFT // it should be 50% of minting price which assetcreator can withdraw ,which
-    //         //should come 0.05$
+            // check the USDC balance of contract RPGItemNFT
+            // after minting the NFT // it should be 50% of minting price which assetcreator can withdraw ,which
+            //should come 0.05$
 
-    //         assertEq(IERC20(usdc).balanceOf(address(rpgItemNFT)), 50000);
+            assertEq(IERC20(usdc).balanceOf(address(rpgItemNFT)), 50000);
 
-    //         //prank assetWalletAddress and then withdraw
+            //prank assetWalletAddress and then withdraw
 
-    //         vm.prank(rpgItemNFT.assetCreatorWallet());
+            vm.prank(rpgItemNFT.assetCreatorWallet());
 
-    //         rpgItemNFT.withdraw(address(usdc));
+            rpgItemNFT.withdraw(address(usdc));
 
-    //         // check balance of assetWalletAddress after withdraw
+            // check balance of assetWalletAddress after withdraw
 
-    //         assertEq(IERC20(usdc).balanceOf(rpgItemNFT.assetCreatorWallet()), 50000);
-    //     }
+            assertEq(IERC20(usdc).balanceOf(rpgItemNFT.assetCreatorWallet()), 50000);
+        }
 
-    //     function skiptestFreeUpgradeSuccess__Failing() public {  //failing
-    //         // mint the nft first
-    //         vm.prank(whitelisted_user1);
-    //         usdc.approve(address(rpgItemNFT), 100000);
+        function testFreeUpgradeSuccess__Failing() public {  //failing
+            // mint the nft first
+            vm.prank(whitelistedGameContract);
+            usdc.approve(address(rpgItemNFT), 100000);
 
-    //         vm.prank(whitelisted_user1);
-    //         uint256 tokenId = rpgItemNFT.mint(whitelisted_user1, emptyAuthParams);
-    //         assertEq(rpgItemNFT.ownerOf(tokenId), whitelisted_user1);
+            vm.prank(whitelistedGameContract);
+            uint256 tokenId = rpgItemNFT.mint(whitelistedGameContract, emptyAuthParams);
+            assertEq(rpgItemNFT.ownerOf(tokenId), whitelistedGameContract);
 
-    //         vm.prank(whitelisted_user1);
-    //         rpgItemNFT.freeUpgrade(tokenId);
+            vm.prank(whitelistedGameContract);
+            rpgItemNFT.freeUpgrade(tokenId);
 
-    //         (uint8 stat1, uint8 stat2, uint8 stat3) = rpgItemNFT.upgradeMapping(tokenId);
-    //         Asset.Stat memory upgradedStat = Asset.Stat(stat1, stat2, stat3);
+            (uint8 stat1, uint8 stat2, uint8 stat3) = rpgItemNFT.upgradeMapping(tokenId);
+            Asset.Stat memory upgradedStat = Asset.Stat(stat1, stat2, stat3);
 
-    //         assertEq(upgradedStat.stat1, 12);
-    //         assertEq(upgradedStat.stat2, 22);
-    //         assertEq(upgradedStat.stat3, 32);
-    //     }
+            assertEq(upgradedStat.stat1, 12);
+            assertEq(upgradedStat.stat2, 22);
+            assertEq(upgradedStat.stat3, 32);
+        }
 
     //     function skiptestFreeUpgradeRevertNotWhitelisted__Failing() public {
     //         // set the mint price to 0.1 USDC(USDC has 6 decimals)

@@ -12,7 +12,8 @@ contract UpgradeV1Test is Test {
 
     function setUp() public {
         upgradeV1 = new UpgradeV1();
-        //console.log("UpgradeV1 address: ", address(upgradeV1));
+        console.log("UpgradeV1 address: ", address(upgradeV1));
+        //0x5615dEB798BB3E4dFa0139dFa1b3D433Cc23b72f
     }
 
     function testCalculateUpgrade() public {
