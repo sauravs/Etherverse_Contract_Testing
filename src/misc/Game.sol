@@ -76,7 +76,8 @@ contract Game is EtherverseUser, ERC721Holder {
         upgradeAddress = _upgrade;
     }
 
-    function createOrder(address _nft, uint256 _tokenId, uint256 _price) external nonReentrant {
+    function createOrder(address _nft, uint256 _tokenId, uint256 _price) external nonReentrant {   // @tester : why no access control?
+    
         require(_nft != address(0), "Invalid Address");
         IERC721 nft = IERC721(_nft);
         require(

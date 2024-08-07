@@ -58,6 +58,11 @@ interface Upgrade {
         return newStat;
     }
 
+    
+    function isEmptyStat(Asset.Stat memory newStat) internal pure returns (bool) {
+        return newStat.stat1 == 0 && newStat.stat2 == 0 && newStat.stat3 == 0;
+    }
+
 interface IGame {
     function upgradeAddress() external view returns (address);
 }

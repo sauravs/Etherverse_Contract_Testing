@@ -204,9 +204,12 @@ contract RPGItemNFT is ERC721, Ownable, ReentrancyGuard {
         }
         _safeMint(to, tokenId);
         tokenLockedTill[tokenId] = 0;
+      
         emit NftMinted(to, tokenId, block.timestamp);
         return tokenId;
     }
+
+ 
 
     function tokenURI(uint256 tokenId) public view override(ERC721) isTokenMinted(tokenId) returns (string memory) {
         return IImage(uriAddress).tokenURI(tokenId);

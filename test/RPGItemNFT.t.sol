@@ -272,6 +272,8 @@ contract RPGItemNFTTest is Test {
         // assert that whitelisted_user1 is the owner of the minted tokenId
 
         assertEq(rpgItemNFT.ownerOf(tokenId), whitelistedGameContract);
+
+        
     }
 
     function testMintRevertNotWhitelisted() public {
@@ -750,6 +752,33 @@ contract RPGItemNFTTest is Test {
         assertEq(IERC20(usdc).balanceOf(rpgItemNFT.assetCreatorWallet()), 50000);
     }
 
+
+     function testresetUpgradesSuccess() public {
+            // mint the nft first
+            vm.prank(whitelistedGameContract);
+            usdc.approve(address(rpgItemNFT), 100000);
+
+            vm.prank(whitelistedGameContract);
+            uint256 tokenId = rpgItemNFT.mint(whitelistedGameContract, emptyAuthParams);
+            assertEq(rpgItemNFT.ownerOf(tokenId), whitelistedGameContract);
+
+            vm.prank(whitelistedGameContract);
+            rpgItemNFT.resetUpgrades(tokenId);
+
+            (uint8 stat1, uint8 stat2, uint8 stat3) = rpgItemNFT.upgradeMapping(tokenId);
+            Asset.Stat memory upgradedStat = Asset.Stat(stat1, stat2, stat3);
+
+            assertEq(upgradedStat.stat1, 0);
+            assertEq(upgradedStat.stat2, 0);
+            assertEq(upgradedStat.stat3, 0);
+        }
+
+        function testresetUpgradesRevertNotMinted() public {
+            vm.prank(whitelistedGameContract);
+            vm.expectRevert(Errors.NotMinted.selector);
+            rpgItemNFT.resetUpgrades(9999999);
+        }
+
     function testFreeUpgradeSuccess__Failing() public {
        
         // mint the nft first
@@ -766,9 +795,9 @@ contract RPGItemNFTTest is Test {
         (uint8 stat1, uint8 stat2, uint8 stat3) = rpgItemNFT.upgradeMapping(tokenId);
         Asset.Stat memory upgradedStat = Asset.Stat(stat1, stat2, stat3);
 
-        assertEq(upgradedStat.stat1, 12);
-        assertEq(upgradedStat.stat2, 22);
-        assertEq(upgradedStat.stat3, 32);
+        assertEq(upgradedStat.stat1, 12); // expecting 12
+        assertEq(upgradedStat.stat2, 22);  // expecting 22
+        assertEq(upgradedStat.stat3, 32);  // expecting 32
     }
 
     //     function skiptestFreeUpgradeRevertNotWhitelisted__Failing() public {
@@ -798,38 +827,38 @@ contract RPGItemNFTTest is Test {
     //         // rpgItemNFT.freeUpgrade(tokenId);
     //     }
 
-    //     function testFreeUpgradeRevertNotMinted() public {
-    //         vm.prank(whitelisted_user1);
+        function testFreeUpgradeRevertNotMinted() public {
+            vm.prank(whitelistedGameContract);
 
-    //         vm.expectRevert(Errors.NotMinted.selector);
-    //         rpgItemNFT.freeUpgrade(9999999);
-    //     }
+            vm.expectRevert(Errors.NotMinted.selector);
+            rpgItemNFT.freeUpgrade(9999999);
+        }
 
-    //     function skiptestpaidUpgradeSuccess__Failing() public {
-    //         // mint the nft first
-    //         vm.prank(whitelisted_user1);
-    //         usdc.approve(address(rpgItemNFT), 100000);
+        function testpaidUpgradeSuccess__Failing() public {
+            // mint the nft first
+            vm.prank(whitelistedGameContract);
+            usdc.approve(address(rpgItemNFT), 100000);
 
-    //         vm.prank(whitelisted_user1);
-    //         uint256 tokenId = rpgItemNFT.mint(whitelisted_user1, emptyAuthParams);
-    //         assertEq(rpgItemNFT.ownerOf(tokenId), whitelisted_user1);
+            vm.prank(whitelistedGameContract);
+            uint256 tokenId = rpgItemNFT.mint(whitelistedGameContract, emptyAuthParams);
+            assertEq(rpgItemNFT.ownerOf(tokenId), whitelistedGameContract);
 
-    //         vm.prank(whitelisted_user1);
-    //         rpgItemNFT.paidUpgrade(tokenId, emptyAuthParams);
+            vm.prank(whitelistedGameContract);
+            rpgItemNFT.paidUpgrade(tokenId, emptyAuthParams);
 
-    //         (uint8 stat1, uint8 stat2, uint8 stat3) = rpgItemNFT.upgradeMapping(tokenId);
-    //         Asset.Stat memory upgradedStat = Asset.Stat(stat1, stat2, stat3);
+            (uint8 stat1, uint8 stat2, uint8 stat3) = rpgItemNFT.upgradeMapping(tokenId);
+            Asset.Stat memory upgradedStat = Asset.Stat(stat1, stat2, stat3);
 
-    //         assertEq(upgradedStat.stat1, 15);
-    //         assertEq(upgradedStat.stat2, 25);
-    //         assertEq(upgradedStat.stat3, 35);
-    //     }
+            assertEq(upgradedStat.stat1, 15);
+            assertEq(upgradedStat.stat2, 25);
+            assertEq(upgradedStat.stat3, 35);
+        }
 
-    //     function testpaidUpgradeRevertNotMinted() public {
-    //         vm.prank(whitelisted_user1);
-    //         vm.expectRevert(Errors.NotMinted.selector);
-    //         rpgItemNFT.paidUpgrade(9999999, emptyAuthParams);
-    //     }
+        function testpaidUpgradeRevertNotMinted() public {
+            vm.prank(whitelistedGameContract);
+            vm.expectRevert(Errors.NotMinted.selector);
+            rpgItemNFT.paidUpgrade(9999999, emptyAuthParams);
+        }
 
     //     function skiptestpaidUpgradeRevertNotWhitelisted__Failing() public {
     //         // set the mint price to 0.1 USDC(USDC has 6 decimals)
@@ -858,78 +887,34 @@ contract RPGItemNFTTest is Test {
     //         // rpgItemNFT.paidUpgrade(tokenId);
     //     }
 
-    //     function testresetUpgradesSuccess() public {
-    //         // mint the nft first
-    //         vm.prank(whitelisted_user1);
-    //         usdc.approve(address(rpgItemNFT), 100000);
+       
 
-    //         vm.prank(whitelisted_user1);
-    //         uint256 tokenId = rpgItemNFT.mint(whitelisted_user1, emptyAuthParams);
-    //         assertEq(rpgItemNFT.ownerOf(tokenId), whitelisted_user1);
+  
 
-    //         vm.prank(whitelisted_user1);
-    //         rpgItemNFT.resetUpgrades(tokenId);
+        
 
-    //         (uint8 stat1, uint8 stat2, uint8 stat3) = rpgItemNFT.upgradeMapping(tokenId);
-    //         Asset.Stat memory upgradedStat = Asset.Stat(stat1, stat2, stat3);
+        function testNextUpgradeSuccess__Failing() public {
 
-    //         assertEq(upgradedStat.stat1, 0);
-    //         assertEq(upgradedStat.stat2, 0);
-    //         assertEq(upgradedStat.stat3, 0);
-    //     }
+           // mint the nft first
+            vm.prank(whitelistedGameContract);
+            usdc.approve(address(rpgItemNFT), 100000);
 
-    //     function testresetUpgradesRevertNotMinted() public {
-    //         vm.prank(whitelisted_user1);
-    //         vm.expectRevert(Errors.NotMinted.selector);
-    //         rpgItemNFT.resetUpgrades(9999999);
-    //     }
+            vm.prank(whitelistedGameContract);
+            uint256 tokenId = rpgItemNFT.mint(whitelistedGameContract, emptyAuthParams);
+            assertEq(rpgItemNFT.ownerOf(tokenId), whitelistedGameContract);
 
-    //     // Explain nextUpgrade and nextUpgradedPrice (ask Aniket)
+            vm.prank(whitelistedGameContract);
+            
+             Asset.Stat memory upgradedStat = rpgItemNFT.nextUpgrade(tokenId, Upgrade.Type.Free);
 
-    //    // write test for nextUpgrade() where its solidity code is
+            // //  (uint8 stat1, uint8 stat2, uint8 stat3) = rpgItemNFT.upgradeMapping(tokenId);
+            // // Asset.Stat memory upgradedStat = Asset.Stat(stat1, stat2, stat3);
 
-    //    /**
+             // assert the value
 
-    //      function nextUpgrade(uint256 tokenId, Upgrade.Type _type)
-    //         external
-    //         view
-    //         isWhitelisted(msg.sender)
-    //         isTokenMinted(tokenId)
-    //         isUnlocked(tokenId)
-    //         returns (Asset.Stat memory)  // Read only function
-    //     {
-    //         if (_type == Upgrade.Type.Free) {
-    //             return _getUpgradeModule(msg.sender).calculateStat(upgradeMapping[tokenId], 2);
-    //         } else if (_type == Upgrade.Type.Paid) {
-    //             return _getUpgradeModule(msg.sender).calculateStat(upgradeMapping[tokenId], 5);
-    //         } else {
-    //             revert("Invalid Type");
-    //         }
-    //     }
+            assertEq(upgradedStat.stat1, 12);
+            assertEq(upgradedStat.stat2, 22);
+            assertEq(upgradedStat.stat3, 32);
 
-    //     */
-
-    //     function skiptestNextUpgradeSuccess__Failing() public {
-
-    //        // mint the nft first
-    //         vm.prank(whitelisted_user1);
-    //         usdc.approve(address(rpgItemNFT), 100000);
-
-    //         vm.prank(whitelisted_user1);
-    //         uint256 tokenId = rpgItemNFT.mint(whitelisted_user1, emptyAuthParams);
-    //         assertEq(rpgItemNFT.ownerOf(tokenId), whitelisted_user1);
-
-    //          vm.prank(whitelisted_user1);
-    //         Asset.Stat memory upgradedStat = rpgItemNFT.nextUpgrade(tokenId, Upgrade.Type.Free);
-
-    //         //  (uint8 stat1, uint8 stat2, uint8 stat3) = rpgItemNFT.upgradeMapping(tokenId);
-    //         // Asset.Stat memory upgradedStat = Asset.Stat(stat1, stat2, stat3);
-
-    //         // assert the value
-
-    //         assertEq(upgradedStat.stat1, 12);
-    //         assertEq(upgradedStat.stat2, 22);
-    //         assertEq(upgradedStat.stat3, 32);
-
-    //     }
+        }
 }
