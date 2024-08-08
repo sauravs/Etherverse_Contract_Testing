@@ -39,6 +39,7 @@ contract UpgradeV1 {
     ) external pure returns (uint256) {
         return ((BASE_PRICE_IN_USDC) * statPriceMultiplier(_stat)) / 100;
     }
+       //stats value 10,20,30 = (60/3 ) * setUpgradePrice/upgradePricing()->in RPG.sol)
 
     function getStat(Asset.StatType statLabel, uint256 tokenId) external view returns (uint8 stat) {
         IRPGV1 nft = IRPGV1(msg.sender);

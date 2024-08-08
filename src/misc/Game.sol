@@ -76,7 +76,9 @@ contract Game is EtherverseUser, ERC721Holder {
         upgradeAddress = _upgrade;
     }
 
-    function createOrder(address _nft, uint256 _tokenId, uint256 _price) external nonReentrant {   // @tester : why no access control?
+    function createOrder(address _nft, uint256 _tokenId, uint256 _price) external nonReentrant {   // @tester : why no access control? //game player to will sell and no modifier because unless NFT owner doesnt approve it,nobody will be able to sell it
+
+    
     
         require(_nft != address(0), "Invalid Address");
         IERC721 nft = IERC721(_nft);

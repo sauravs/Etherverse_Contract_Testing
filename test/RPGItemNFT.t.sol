@@ -779,7 +779,7 @@ contract RPGItemNFTTest is Test {
             rpgItemNFT.resetUpgrades(9999999);
         }
 
-    function testFreeUpgradeSuccess__Failing() public {
+    function testFreeUpgradeSuccess() public {
        
         // mint the nft first
         vm.prank(whitelistedGameContract);
@@ -792,12 +792,12 @@ contract RPGItemNFTTest is Test {
         vm.prank(whitelistedGameContract);
         rpgItemNFT.freeUpgrade(tokenId);
 
-        (uint8 stat1, uint8 stat2, uint8 stat3) = rpgItemNFT.upgradeMapping(tokenId);
+        (uint8 stat1, uint8 stat2, uint8 stat3) = rpgItemNFT.getTokenStats(tokenId);
         Asset.Stat memory upgradedStat = Asset.Stat(stat1, stat2, stat3);
 
-        assertEq(upgradedStat.stat1, 12); // expecting 12
-        assertEq(upgradedStat.stat2, 22);  // expecting 22
-        assertEq(upgradedStat.stat3, 32);  // expecting 32
+        assertEq(upgradedStat.stat1, 12); 
+        assertEq(upgradedStat.stat2, 22);  
+        assertEq(upgradedStat.stat3, 32); 
     }
 
     //     function skiptestFreeUpgradeRevertNotWhitelisted__Failing() public {
@@ -834,7 +834,7 @@ contract RPGItemNFTTest is Test {
             rpgItemNFT.freeUpgrade(9999999);
         }
 
-        function testpaidUpgradeSuccess__Failing() public {
+        function testpaidUpgradeSuccess() public {
             // mint the nft first
             vm.prank(whitelistedGameContract);
             usdc.approve(address(rpgItemNFT), 100000);
@@ -846,12 +846,12 @@ contract RPGItemNFTTest is Test {
             vm.prank(whitelistedGameContract);
             rpgItemNFT.paidUpgrade(tokenId, emptyAuthParams);
 
-            (uint8 stat1, uint8 stat2, uint8 stat3) = rpgItemNFT.upgradeMapping(tokenId);
+            (uint8 stat1, uint8 stat2, uint8 stat3) = rpgItemNFT.getTokenStats(tokenId);
             Asset.Stat memory upgradedStat = Asset.Stat(stat1, stat2, stat3);
 
-            assertEq(upgradedStat.stat1, 15);
-            assertEq(upgradedStat.stat2, 25);
-            assertEq(upgradedStat.stat3, 35);
+            assertEq(upgradedStat.stat1, 15); // 10+5
+            assertEq(upgradedStat.stat2, 25); // 20+5
+            assertEq(upgradedStat.stat3, 35); // 30+5
         }
 
         function testpaidUpgradeRevertNotMinted() public {
@@ -905,16 +905,64 @@ contract RPGItemNFTTest is Test {
 
             vm.prank(whitelistedGameContract);
             
-             Asset.Stat memory upgradedStat = rpgItemNFT.nextUpgrade(tokenId, Upgrade.Type.Free);
+            rpgItemNFT.nextUpgrade(tokenId, Upgrade.Type.Free);
 
-            // //  (uint8 stat1, uint8 stat2, uint8 stat3) = rpgItemNFT.upgradeMapping(tokenId);
-            // // Asset.Stat memory upgradedStat = Asset.Stat(stat1, stat2, stat3);
+            (uint8 stat1, uint8 stat2, uint8 stat3) = rpgItemNFT.getTokenStats(tokenId);
+         Asset.Stat memory upgradedStatFree = Asset.Stat(stat1, stat2, stat3);
 
              // assert the value
 
-            assertEq(upgradedStat.stat1, 12);
-            assertEq(upgradedStat.stat2, 22);
-            assertEq(upgradedStat.stat3, 32);
+            assertEq(upgradedStatFree.stat1, 10); // expecting 10
+            assertEq(upgradedStatFree.stat2, 20); // expecting 20
+            assertEq(upgradedStatFree.stat3, 30); // expecting 30
+
+            // do the free upgrade and then test the nextUpgrade for "Free" version again to see if the next stats are updated to 12,22,32
+
+            
+
+
+
 
         }
+
+
+     
+    
+
+
+    function testNextUpgradePriceSuccess__Failing() public {
+
+           // mint the nft first
+            vm.prank(whitelistedGameContract);
+            usdc.approve(address(rpgItemNFT), 100000);
+
+            vm.prank(whitelistedGameContract);
+            uint256 tokenId = rpgItemNFT.mint(whitelistedGameContract, emptyAuthParams);
+            assertEq(rpgItemNFT.ownerOf(tokenId), whitelistedGameContract);
+
+            vm.prank(whitelistedGameContract);
+            
+             uint256 price = rpgItemNFT.nextUpgradePrice(tokenId);
+
+             // assert the value
+
+            assertEq(price, 50000);
+
+        }
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
 }
