@@ -67,7 +67,34 @@ contract GameTest is IERC721Receiver {
 
 
 
-
+////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+	  
+	  
+	  File Name Changed: 
+	  
+	 1) src/common/Etherverse.sol  -> src/common/Etherverse.sol 
+	 
+	 2) src/nft/Fee.sol
+	    src/nft/RPG.sol           -> src/nft/EtherverseNFT.sol
+		src/nft/RPGUtil.sol
+	   
+	  
+	 3)  src/nft/lib/errors.sol     -> src/nft/lib/errors.sol
+	     src/nft/lib/RPGStruct.sol     src/nft/lib/Fee.sol
+	                                   src/nft/lib/Structs.sol
+									   src/nft/lib/Utils.sol
+	 
+	 4) src/nft/helpers/ImageV1.sol -> src/nft/helpers/FrameV1.sol
+	 
+	 5)  src/nft/interface/IRPG.sol       ->  src/nft/interface/IEtherverseNFT.sol        
+	     src/nft/interface/IUpgradeV1.sol     src/nft/interface/IUpgradeV1.sol
+	 
+	 
+	   
+	
+	
+	
+	
 
 
 
