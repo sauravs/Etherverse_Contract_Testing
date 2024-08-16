@@ -54,15 +54,15 @@ contract Game is EtherverseUser, ERC721Holder {
     }
 
     constructor(
-        address _etherverse,
-        address _user,
-        address _userWallet,
-        address _usdcToken,
+        address _etherverse,      //external wallet fee collector address which will be web3tech wallet
+        address _user,           // game developer external address(wallet)
+        address _userWallet,    // game developer fee collector wallet
+        address _usdcToken,  
         address _upgrade,
-        address initalOwner,
-        uint256 _marketFee,
-        uint256 _etherverseFee,
-        string memory _name
+        address initalOwner,   // web3tech backend wallet address
+        uint256 _marketFee,   // what commission does the game take which  ingame fees collected by game developer // eg  42.69% 4269
+        uint256 _etherverseFee,  //// web3tech platform fee // 9% 900
+        string memory _name    // Game Name
     )
         EtherverseUser(
             _etherverse,

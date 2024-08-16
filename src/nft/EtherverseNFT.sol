@@ -39,7 +39,7 @@ contract EtherverseNFT is ERC721, Ownable, ReentrancyGuard {
     mapping(address => bool) public whitelisted;
     mapping(uint256 => Asset.Stat) public upgradeMapping;
     mapping(address => uint256) public upgradePricing;
-    mapping(uint256 => uint256) private tokenLockedTill;  //@tester : updated to public for testing purpose (revert back to private before deployment to mainnet)
+    mapping(uint256 => uint256) public tokenLockedTill;  //@tester : updated to public for testing purpose (revert back to private before deployment to mainnet)
 
     event NftMinted(
         address indexed recipient,
@@ -154,6 +154,12 @@ contract EtherverseNFT is ERC721, Ownable, ReentrancyGuard {
 
     function changeFrame(address _uri) external onlyOwner {
         uriAddress = _uri;
+    }
+
+    
+    function setUSDC(address _usdc) external onlyOwner {
+        //@tester added this function for testing purpose
+        USDC = _usdc;
     }
 
     function changeImageUrl(string memory str) external onlyOwner {
