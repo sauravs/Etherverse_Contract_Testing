@@ -175,8 +175,8 @@ contract EtherverseNFT is ERC721, Ownable, ReentrancyGuard {
         mintPrice = _mintPrice;
     }
 
-    function setFeeSplit(uint256 _split) external onlyOwner {
-        if (_split > 10000) revert Errors.ZeroInput();
+    function setFeeSplit(uint256 _split) external onlyOwner {  //@tester : wrong error msg
+        if (_split > 10000) revert Errors.ZeroInput();  
         feeSplit = _split;
     }
 
@@ -321,9 +321,9 @@ contract EtherverseNFT is ERC721, Ownable, ReentrancyGuard {
         uint256 tokenId
     ) external view returns (uint8 stat) {
         if (
-            _ownerOf(tokenId) != address(0) || // isTokenMinted
+            _ownerOf(tokenId) != address(0) || // isTokenMinted  W
             tokenLockedTill[tokenId] < block.timestamp || // isUnlocked
-            msg.sender == uriAddress // bypass all the logic if it is being called by Frame contract.
+            msg.sender == uriAddress // bypass all the logic if it is being called by Frame contract.  //@tester: not understood this
         ) {
             if (statLabel == statLabels[0])
                 return upgradeMapping[tokenId].stat1 + baseStat.stat1;
