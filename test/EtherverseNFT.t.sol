@@ -879,89 +879,156 @@ contract etherverseNFTTest is Test {
 
         
 
-    //     function testNextUpgradeSuccess__Failing() public {
+        function testNextUpgradeSuccess__Failing() public {
 
-    //        // mint the nft first
-    //         vm.prank(whitelistedGameContract);
-    //         usdc.approve(address(etherverseNFT), 100000);
+           // mint the nft first
+            vm.prank(whitelistedGameContract);
+            usdc.approve(address(etherverseNFT), 100000);
 
-    //         vm.prank(whitelistedGameContract);
-    //         uint256 tokenId = etherverseNFT.mint(whitelistedGameContract, emptyAuthParams);
-    //         assertEq(etherverseNFT.ownerOf(tokenId), whitelistedGameContract);
+            vm.prank(whitelistedGameContract);
+            uint256 tokenId = etherverseNFT.mint(whitelistedGameContract, emptyAuthParams);
+            assertEq(etherverseNFT.ownerOf(tokenId), whitelistedGameContract);
 
-    //         vm.prank(whitelistedGameContract);
+       // do the first free upgrade (87+2 , 20+2, 21+2)
+ 
+        vm.prank(whitelistedGameContract);
+        etherverseNFT.freeUpgrade(tokenId);
+
+        (uint8 stat1, uint8 stat2, uint8 stat3) = etherverseNFT.getTokenStats(tokenId);
+        Asset.Stat memory upgradedStat = Asset.Stat(stat1, stat2, stat3);
+
+        assertEq(upgradedStat.stat1, 89); 
+        assertEq(upgradedStat.stat2, 22);  
+        assertEq(upgradedStat.stat3, 23); 
+
+          //do second free upgrade (89+2 , 22+2, 23+2)
+
+
+          vm.prank(whitelistedGameContract);
+        etherverseNFT.freeUpgrade(tokenId);
+
+        (uint8 stat1s, uint8 stat2s, uint8 stat3s) = etherverseNFT.getTokenStats(tokenId);
+        Asset.Stat memory upgradedStats = Asset.Stat(stat1s, stat2s, stat3s);
+
+        assertEq(upgradedStats.stat1, 91); 
+        assertEq(upgradedStats.stat2, 24);  
+        assertEq(upgradedStats.stat3, 25); 
+
+
+             
+             
+             // call the next upgrade function
+             
+             vm.prank(whitelistedGameContract);
             
-    //         etherverseNFT.nextUpgrade(tokenId, Upgrade.Type.Free);
-
-    //         (uint8 stat1, uint8 stat2, uint8 stat3) = etherverseNFT.getTokenStats(tokenId);
-    //      Asset.Stat memory upgradedStatFree = Asset.Stat(stat1, stat2, stat3);
-
-    //          // assert the value
-
-    //         assertEq(upgradedStatFree.stat1, 10); // expecting 12
-    //         assertEq(upgradedStatFree.stat2, 20); // expecting 22
-    //         assertEq(upgradedStatFree.stat3, 30); // expecting 32
-
-    //         // do the free upgrade and then test the nextUpgrade for "Free" version again to see if the next stats are updated to 12,22,32
-
-    //     vm.prank(whitelistedGameContract);
-    //     etherverseNFT.freeUpgrade(tokenId);
-  
-    //     vm.prank(whitelistedGameContract);
-    //     etherverseNFT.nextUpgrade(tokenId, Upgrade.Type.Free);
-
-    //     (uint8 stat1Free, uint8 stat2Free, uint8 stat3Free) = etherverseNFT.getTokenStats(tokenId);
-
-    //     Asset.Stat memory upgradedStatFreeNext = Asset.Stat(stat1Free, stat2Free, stat3Free);
-
-    //     assertEq(upgradedStatFreeNext.stat1, 12); // expecting 12
-    //     assertEq(upgradedStatFreeNext.stat2, 22); // expecting 22
-    //     assertEq(upgradedStatFreeNext.stat3, 32); // expecting 32
+            Asset.Stat memory upgradedStatFreeup = etherverseNFT.nextUpgrade(tokenId, Upgrade.Type.Free);
 
 
+//    Asset.Stat memory upgradedStatFree = Asset.Stat(stat1, stat2, stat3);
 
-    //       vm.prank(whitelistedGameContract);
-            
-    //         etherverseNFT.nextUpgrade(tokenId, Upgrade.Type.Paid);
+             // assert the value
 
-    //         (uint8 stat1Paid, uint8 stat2Paid, uint8 stat3Paid) = etherverseNFT.getTokenStats(tokenId);
-    //      Asset.Stat memory upgradedStatPaid = Asset.Stat(stat1Paid, stat2Paid, stat3Paid);
-
-    //       assertEq(upgradedStatPaid.stat1, 12); 
-    //     assertEq(upgradedStatPaid.stat2, 22); 
-    //     assertEq(upgradedStatPaid.stat3, 32);
+            assertEq(upgradedStatFreeup.stat1, 93); //coming 6
+            assertEq(upgradedStatFreeup.stat2, 26);//coming 6
+            assertEq(upgradedStatFreeup.stat3, 27); //coming 6
 
 
-    //     }
+        }
 
 
      
     
 
 
-    // function testNextUpgradePriceSuccess__Failing() public {
+  function testNextUpgradePriceSuccess() public {
+        
+        // mint the nft first
 
-    //        // mint the nft first
-    //         vm.prank(whitelistedGameContract);
-    //         usdc.approve(address(etherverseNFT), 100000);
+        vm.prank(whitelistedGameContract);
+        usdc.approve(address(etherverseNFT), 100000);
 
-    //         vm.prank(whitelistedGameContract);
-    //         uint256 tokenId = etherverseNFT.mint(whitelistedGameContract, emptyAuthParams);
-    //         assertEq(etherverseNFT.ownerOf(tokenId), whitelistedGameContract);
+        vm.prank(whitelistedGameContract);
+        uint256 tokenId = etherverseNFT.mint(whitelistedGameContract, emptyAuthParams);
+        assertEq(etherverseNFT.ownerOf(tokenId), whitelistedGameContract);
 
-    //         vm.prank(whitelistedGameContract);
-            
-    //          uint256 price = etherverseNFT.nextUpgradePrice(tokenId);
+        // set upgrade price to 1.0 USDC
 
-    //          // assert the value
+        vm.prank(whitelistedGameContract);
+        etherverseNFT.setUpgradePrice(100000);
 
-    //         assertEq(price, 50000);
+        // check the upgrade price
 
-       // }
+        // mapping(address => uint256) public upgradePricing;
 
-
+        assertEq(etherverseNFT.upgradePricing(whitelistedGameContract), 100000);
 
 
+
+        // check the upgrade price
+        vm.prank(whitelistedGameContract);
+       uint256 currentnextupgradedPrice = etherverseNFT.nextUpgradePrice(tokenId);
+
+       console.log("currentnextupgradedPrice", currentnextupgradedPrice); // getting zero as obvious from logic calculateprice(as stats will be zero previous to any upgrade)
+
+       // expecting  ((BASE_PRICE_IN_USDC)*statPriceMultiplier(_stat)) / 100;
+
+       // which is
+       //  (100000 * ((87+20+21)*100)/3))/100 is equal to 
+
+       // 1,042.6
+   
+
+
+
+        // assertEq(etherverseNFT.nextUpgradePrice(tokenId), 50000);
+    }
+
+
+    // function testNextUpgradePriceRevertNotMinted() public {
+    //     vm.expectRevert(Errors.NotMinted.selector);
+    //     etherverseNFT.nextUpgradePrice(9999999);
+    // }
+
+    // function testNextUpgradePriceRevertLocked() public {
+    //     // mint the nft first
+
+    //     vm.prank(whitelistedGameContract);
+    //     usdc.approve(address(etherverseNFT), 100000);
+
+    //     vm.prank(whitelistedGameContract);
+    //     uint256 tokenId = etherverseNFT.mint(whitelistedGameContract, emptyAuthParams);
+    //     assertEq(etherverseNFT.ownerOf(tokenId), whitelistedGameContract);
+
+    //     // lock the token
+    //     vm.prank(ccipHandler);
+    //     etherverseNFT.setTokenLockStatus(tokenId, block.timestamp + 1 days);
+    //     assertEq(etherverseNFT.lockStatus(tokenId), true);
+
+    //     vm.prank(whitelistedGameContract);
+    //     vm.expectRevert(abi.encodeWithSelector(Errors.Locked.selector, tokenId, block.timestamp));
+    //     etherverseNFT.nextUpgradePrice(tokenId);
+    // }
+
+    // function testNextUpgradePriceRevertNotWhitelisted() public {
+    //     // mint the nft first
+
+    //     vm.prank(whitelistedGameContract);
+    //     usdc.approve(address(etherverseNFT), 100000);
+
+    //     vm.prank(whitelistedGameContract);
+    //     uint256 tokenId = etherverseNFT.mint(whitelistedGameContract, emptyAuthParams);
+    //     assertEq(etherverseNFT.ownerOf(tokenId), whitelistedGameContract);
+
+    //     vm.prank(whitelistedGameContract);
+    //     vm.expectRevert(abi.encodeWithSelector(Errors.CallerMustBeWhitelisted.selector, nonWhitelistedUser));
+    //     etherverseNFT.nextUpgradePrice(tokenId);
+    // }
+
+    // function testNextUpgradePriceRevertUpgradeNotAvailable() public {
+    //     // mint the nft first
+
+    //     vm.prank(whitelistedGameContract);
+    //     usdc.approve(address(etherverseNFT), 100000);
 
 
 

@@ -90,7 +90,13 @@ contract GameTest is IERC721Receiver {
 	     src/nft/interface/IUpgradeV1.sol     src/nft/interface/IUpgradeV1.sol
 	 
 	 
-	   
+	 //////////////////////////////////////////////////////
+
+
+     setupgradeprice , and related to upgrade call it from Gamer.sol
+
+
+     * all those functions inside EtherverseNFT which has whitlisted modifier..need to be call by game contract  
 	
 	
 	

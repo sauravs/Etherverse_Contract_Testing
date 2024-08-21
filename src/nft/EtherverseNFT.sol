@@ -286,7 +286,7 @@ contract EtherverseNFT is ERC721, Ownable, ReentrancyGuard {
     {
         if (_type == Upgrade.Type.Free) {
             return
-                _getUpgradeModule(msg.sender).calculateStat(
+                _getUpgradeModule(msg.sender).calculateStat(    //@tester why caluclatestate here and not calculate_upgrade?
                     upgradeMapping[tokenId],
                     2
                 );
@@ -307,7 +307,7 @@ contract EtherverseNFT is ERC721, Ownable, ReentrancyGuard {
         isTokenMinted(tokenId)
         isUnlocked(tokenId)
         isWhitelisted(msg.sender)
-        returns (uint256)
+        returns (uint256)  //@why in next upgraded price checkup not via free and paid mode?
     {
         return
             _getUpgradeModule(msg.sender).calculatePrice(
