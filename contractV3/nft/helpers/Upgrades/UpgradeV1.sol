@@ -1,13 +1,15 @@
 // SPDX-License-Identifier: MIT
 pragma solidity ^0.8.20;
 import "@openzeppelin/contracts/utils/Strings.sol";
-import {Utils} from "../lib/Utils.sol";
-import {Asset} from "../lib/Structs.sol";
-import {IEtherverseNFT} from "../interface/IEtherverseNFT.sol";
+import {Utils} from "../../lib/Utils.sol";
+import {Asset} from "../../lib/Structs.sol";
+import {IEtherverseNFT} from "../../interface/IEtherverseNFT.sol";
 
-contract UpgradeV1 {
+contract Upgrade {
     mapping(bytes32 => Asset.Stat) newStatMap;
     string public constant UpgradeName = "Basic Upgrade";
+
+    constructor() {}
 
     function calculateUpgrade(
         Asset.Stat memory _stat,

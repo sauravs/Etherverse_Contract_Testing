@@ -2,8 +2,8 @@
 pragma solidity 0.8.24;
 import "@openzeppelin/contracts/utils/Strings.sol";
 import "@openzeppelin/contracts/utils/Base64.sol";
-import {Asset} from "../lib/Utils.sol";
-import {IEtherverseNFT} from "../interface/IEtherverseNFT.sol";
+import {Asset} from "../../lib/Utils.sol";
+import {IEtherverseNFT} from "../../interface/IEtherverseNFT.sol";
 
 contract Frame {
     using Strings for uint8;
@@ -170,7 +170,12 @@ function generateFrame(
                                     "{",
                                     keyValue("name", data.name, true),
                                     keyValue("signature", data.sign, true),
-                                    keyValue("metadata", data.metadata, true),
+                                    keyValue("metadata", string(
+                                            abi.encodePacked(
+                                                "data:application/json;base64,",
+                                                Base64.encode(bytes(data.metadata))
+                                            )
+                                        ), true),
                                     keyValue("image", data.image, true),
                                     keyValue(
                                         "animation_url",
@@ -190,6 +195,7 @@ function generateFrame(
                 )
             );
     }
+
 
     function keyValue(
         string memory key,

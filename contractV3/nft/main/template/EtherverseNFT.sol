@@ -6,41 +6,47 @@ import "@openzeppelin/contracts/access/Ownable.sol";
 import "@openzeppelin/contracts/utils/Strings.sol";
 import "@openzeppelin/contracts/utils/Base64.sol";
 import "@openzeppelin/contracts/utils/ReentrancyGuard.sol";
-import "./interface/IUpgradeV1.sol";
-import {Asset, Upgrade} from "./lib/Structs.sol";
-import "./lib/Fee.sol";
-import "./lib/errors.sol";
+import {IUpgrade} from "../../interface/IUpgradeV1.sol";
+import {Asset, Upgrade, Price} from "../../lib/Structs.sol";
+import "../../lib/Fee.sol";
+import "../../lib/errors.sol";
+
+// @all please do not remove any comment starting with marker
 
 contract EtherverseNFT is ERC721, Ownable, ReentrancyGuard {
-    using Strings for uint256;
+    using Strings for uint256; // To easily convert numbers to strings
+    uint8[] public colorRanges; // Ranges for color assignment
+    uint24[] public svgColors; // SVG color values
+    uint256 private _nextTokenId; // Tracks the next token ID to be minted
 
-    uint8[] public colorRanges;
-    uint24[] public svgColors;
-    uint256 public _nextTokenId;   // @tester : updated to public for testing purpose (revert back to private before deployment to mainnet)
+    // marker STARTING_TOKEN_ID
     uint256 private constant STARTING_TOKEN_ID = 1000000;
+    // marker STARTING_TOKEN_ID
     uint256 private constant MINT_LIMIT = 999999;
-    uint256 public mintPrice;
-    uint256 public feeSplit;
-    uint256 public sign; //@dev sign is signature look at setter fun for more info
 
-    string public itemImage;
-    string public metadata;
+    bytes public sign; // Signature for cross-verification to verify nft belongs from etherverse
 
-    address public etherverseWallet;
-    address public assetCreatorWallet;
-    address public USDC;
-    address public _ccipHandler;
-    address public uriAddress;
+    string public itemImage; // URL for the item's image
+    string public metadata; // Metadata string
 
-    Asset.Stat public baseStat;
-    Asset.Type public AssetType;
-    Asset.StatType[3] public statLabels;
+    address public assetCreatorWallet; // Wallet for the asset creator's revenue
+    address public USDC; // Address for USDC token
+    address public _ccipHandler; // Handler for cross-chain integration (via CCIP)
+    address public frameAddress; // Frame contract address
 
+    Asset.Stat public baseStat; // Base stats of the asset (like strength, dexterity, etc.)
+    Asset.Type public AssetType; // Type of the asset (like weapon, shield, etc.)
+    Asset.StatType[3] public statLabels; // Labels for the stats
+
+    Price public mintPricing; // creating new struct using Price
+
+    // Mapping to store white-listed addresses, upgrades, upgrade pricing, and token lock statuses
     mapping(address => bool) public whitelisted;
     mapping(uint256 => Asset.Stat) public upgradeMapping;
-    mapping(address => uint256) public upgradePricing;
-    mapping(uint256 => uint256) public tokenLockedTill;  //@tester : updated to public for testing purpose (revert back to private before deployment to mainnet)
+    mapping(address => Price) public upgradePricing;
+    mapping(uint256 => uint256) private tokenLockedTill;
 
+    // Event for NFT minting and locking a token
     event NftMinted(
         address indexed recipient,
         uint256 indexed tokenId,
@@ -52,70 +58,110 @@ contract EtherverseNFT is ERC721, Ownable, ReentrancyGuard {
         uint256 indexed lockedTill
     );
 
+    // Modifier to restrict access to CCIP handler only
     modifier onlyCCIPRouter() {
         if (msg.sender != _ccipHandler)
             revert Errors.UnauthorizedAccess(msg.sender);
         _;
     }
+
+    // Modifier to check if a token is unlocked
     modifier isUnlocked(uint256 tokenId) {
         if (tokenLockedTill[tokenId] > block.timestamp)
             revert Errors.Locked(tokenId, block.timestamp);
         _;
     }
+
+    // Modifier to ensure that the token exists
     modifier isTokenMinted(uint256 tokenId) {
         if (_ownerOf(tokenId) == address(0)) revert Errors.NotMinted();
         _;
     }
-    // @dev Any function with this modifier can only be called by a whitelisted marketplace contract
+
+    // Modifier to ensure function caller is white-listed
     modifier isWhitelisted(address _address) {
         if (!whitelisted[_address])
             revert Errors.CallerMustBeWhitelisted(_address);
         _;
     }
+
+    // Modifier to ensure address is non-zero
     modifier nonZeroAddress(address _address) {
         if (_address == address(0)) revert Errors.ZeroAddress();
         _;
     }
 
-    constructor()
-        ERC721("Sword", "SW")
-        Ownable(0x762aD31Ff4bD1ceb5b3b5868672d5CBEaEf609dF)
-    {
-        etherverseWallet = 0x0C903F1C518724CBF9D00b18C2Db5341fF68269C;
+    // Constructor to initialize contract with name, symbol, and initial owner
+    constructor(
+        string memory name,
+        string memory symbol,
+        address initialOwner
+    ) ERC721(name, symbol) Ownable(initialOwner) {
+        // marker assetCreatorWallet
         assetCreatorWallet = 0xa1293A8bFf9323aAd0419E46Dd9846Cc7363D44b;
+        // marker assetCreatorWallet
+
+        // marker USDC
         USDC = 0x0Fd9e8d3aF1aaee056EB9e802c3A762a667b1904;
+        // marker USDC
+        // marker baseStat
         baseStat = Asset.Stat(87, 20, 21);
+        // marker baseStat
+        // marker statLabels
         statLabels = [
             Asset.StatType.STR,
             Asset.StatType.DEX,
             Asset.StatType.CON
         ];
+        // marker statLabels
+        // marker assetType
         AssetType = Asset.Type.Weapon;
+        // marker assetType
+        // marker svgColors
         svgColors = [213, 123, 312];
+        // marker svgColors
+        // marker colorRanges
         colorRanges = [0, 10, 20, 30];
+        // marker colorRanges
+        // marker itemImage
         itemImage = "https://ipfs.io/ipfs/QmVQ2vpBD1U6P22V2xaHk5KF5x6mQAM7HmFsc8c2AsQhgo";
+        // marker itemImage
 
         // TODO: Update the address before deployment
+        // marker ccipHandler
         _ccipHandler = 0x3c7444D7351027473698a7DCe751eE6Aea8036ee;
-        mintPrice = 100000;
+        // marker ccipHandler
+
+        // 1000 means 10% of the mint price goes to the creator
+        // marker mintPricing.split
+        mintPricing.split = 1000;
+        // marker mintPricing.split
+
+        // marker mintPricing.amount
+        mintPricing.amount = 100000;
+        // marker mintPricing.amount
 
         // TODO: Update the address before deployment
-        uriAddress = address(0);
+        // marker frameAddress
+        frameAddress = address(0);
+        // marker frameAddress
         _nextTokenId = STARTING_TOKEN_ID;
-        metadata = "";
-
-        // this means 10% of the mint price goes to the creator
-        feeSplit = 1000;
+        metadata = "{}";
     }
 
+    // Getter function for color ranges array
     function colorRangesArray() external view returns (uint8[] memory) {
         return colorRanges;
     }
 
+    // Getter function for SVG colors array
+    // colors for each level definted in colorRangesArray
     function svgColorsArray() external view returns (uint24[] memory) {
         return svgColors;
     }
 
+    // Getter function for stat labels array
+    // stats labels in total 3 stat we have
     function statLabelsArray()
         external
         view
@@ -124,10 +170,12 @@ contract EtherverseNFT is ERC721, Ownable, ReentrancyGuard {
         return statLabels;
     }
 
+    // Getter function to check if a token is locked
     function lockStatus(uint256 tokenId) external view returns (bool) {
         return (tokenLockedTill[tokenId] > block.timestamp);
     }
 
+    // Setter function to lock a token for a specific duration until token is transferred
     function setTokenLockStatus(
         uint256 tokenId,
         uint256 unlockTime //CCIP use
@@ -140,68 +188,71 @@ contract EtherverseNFT is ERC721, Ownable, ReentrancyGuard {
     // Once the contract is deployed, this signature is set and is used for cross-verification.
     // When checking the minted NFT, this signature is compared against the signature stored in the NFT metadata
     // to ensure authenticity and confirm that it was minted by our Game-X software.
-    function setSign(uint256 _sign) external onlyOwner {
+    function setSign(bytes memory _sign) external onlyOwner {
         sign = _sign;
     }
 
+    // Setter function to whitelist an address
+    //authenticating a game dev, they (game dev) have integrated this asset
     function setWhitelisted(address _address, bool _status) external onlyOwner {
         whitelisted[_address] = _status;
     }
 
+    // Change CCIP handler address
+    // for cross chain
     function changeCCIP(address newAdd) external onlyOwner {
         _ccipHandler = newAdd;
     }
 
-    function changeFrame(address _uri) external onlyOwner {
-        uriAddress = _uri;
+    // Change the frame address (for rendering the NFT)
+    // Frame is nothing but token uri
+    function changeFrame(address _frameAddress) external onlyOwner {
+        frameAddress = _frameAddress;
     }
 
-    
-    function setUSDC(address _usdc) external onlyOwner {
-        //@tester added this function for testing purpose
-        USDC = _usdc;
-    }
-
+    // Change the image URL of the NFT
     function changeImageUrl(string memory str) external onlyOwner {
         itemImage = str;
     }
 
+    // Update metadata of the NFT
+    // metadata for nfts
     function setMetadata(string memory str) external onlyOwner {
         metadata = str;
     }
 
-    function setMintPrice(uint256 _mintPrice) external onlyOwner {
-        if (_mintPrice == 0) revert Errors.ZeroInput();
-        mintPrice = _mintPrice;
+    function setMintPricing(
+        uint256 _amount,
+        uint256 _split
+    ) external onlyOwner {
+        if (_split > 8000) revert Errors.SplitTooHigh();
+        mintPricing.amount = _amount == 0 ? mintPricing.amount : _amount;
+        mintPricing.split = _split == 0 ? mintPricing.split : _split;
     }
 
-    function setFeeSplit(uint256 _split) external onlyOwner {  //@tester : wrong error msg
-        if (_split > 10000) revert Errors.ZeroInput();  
-        feeSplit = _split;
-    }
-
-    function setUpgradePrice(
-        uint256 _price
+    function setUpgradePricing(
+        uint256 _price,
+        uint256 _split
     ) external isWhitelisted(msg.sender) {
-        upgradePricing[msg.sender] = _price;
+        if (_split > 8000) revert Errors.SplitTooHigh();
+        upgradePricing[msg.sender].split = _split;
+        upgradePricing[msg.sender].amount = _price;
     }
 
     function getTokenStats(
         uint256 tokenId
-    ) external view isTokenMinted(tokenId) returns (uint8, uint8, uint8) {
-        return (
+    ) external view isTokenMinted(tokenId) returns (uint8[3] memory) {
+        return [
             upgradeMapping[tokenId].stat1 + baseStat.stat1,
             upgradeMapping[tokenId].stat2 + baseStat.stat2,
             upgradeMapping[tokenId].stat3 + baseStat.stat3
-        );
+        ];
     }
 
-    function updateStats(   //@tester : related to CCIP ? to transfer stats to other chain? why isTokenMinted check is not used here?
+    function updateStats(
         uint256 tokenId,
         address newOwner,
-        uint8 stat1,
-        uint8 stat2,
-        uint8 stat3
+        uint8[3] memory stats
     ) external nonZeroAddress(newOwner) onlyCCIPRouter returns (bool) {
         address currentOwner = ownerOf(tokenId);
 
@@ -211,7 +262,7 @@ contract EtherverseNFT is ERC721, Ownable, ReentrancyGuard {
             emit NftMinted(newOwner, tokenId, block.timestamp);
         }
 
-        upgradeMapping[tokenId] = Asset.Stat(stat1, stat2, stat3);
+        upgradeMapping[tokenId] = Asset.Stat(stats[0], stats[1], stats[2]);
         return true;
     }
 
@@ -219,7 +270,13 @@ contract EtherverseNFT is ERC721, Ownable, ReentrancyGuard {
         address to,
         bytes memory authorizationParams
     ) external isWhitelisted(msg.sender) nonReentrant returns (uint256) {
-        Fee.receiveUSDC(to, mintPrice, USDC, feeSplit, authorizationParams);
+        Fee.receiveUSDC(
+            to,
+            mintPricing.amount,
+            USDC,
+            mintPricing.split,
+            authorizationParams
+        );
         uint256 tokenId = _nextTokenId++;
         if (tokenId > STARTING_TOKEN_ID + 100000)
             revert Errors.ExceedsCapacity();
@@ -232,10 +289,10 @@ contract EtherverseNFT is ERC721, Ownable, ReentrancyGuard {
     function tokenURI(
         uint256 tokenId
     ) public view override(ERC721) returns (string memory) {
-        return IFrame(uriAddress).tokenURI(tokenId);
+        return IFrame(frameAddress).tokenURI(tokenId);
     }
 
-    function freeUpgrade(  //@tester: if token minted check is here,then their is no need of isWhitelisted modifier,because only whitelisted user can mint
+    function freeUpgrade(
         uint256 tokenId
     )
         external
@@ -263,11 +320,11 @@ contract EtherverseNFT is ERC721, Ownable, ReentrancyGuard {
         Fee.receiveUSDC(
             _ownerOf(tokenId),
             _getUpgradeModule(msg.sender).calculatePrice(
-                upgradePricing[msg.sender],
+                upgradePricing[msg.sender].amount,
                 newStat
             ),
             USDC,
-            feeSplit,
+            10000 - upgradePricing[msg.sender].split,
             authorizationParams
         );
         upgradeMapping[tokenId] = newStat;
@@ -286,7 +343,7 @@ contract EtherverseNFT is ERC721, Ownable, ReentrancyGuard {
     {
         if (_type == Upgrade.Type.Free) {
             return
-                _getUpgradeModule(msg.sender).calculateStat(    //@tester why caluclatestate here and not calculate_upgrade?
+                _getUpgradeModule(msg.sender).calculateStat(
                     upgradeMapping[tokenId],
                     2
                 );
@@ -307,11 +364,11 @@ contract EtherverseNFT is ERC721, Ownable, ReentrancyGuard {
         isTokenMinted(tokenId)
         isUnlocked(tokenId)
         isWhitelisted(msg.sender)
-        returns (uint256)  //@why in next upgraded price checkup not via free and paid mode?
+        returns (uint256)
     {
         return
             _getUpgradeModule(msg.sender).calculatePrice(
-                upgradePricing[msg.sender],
+                upgradePricing[msg.sender].amount,
                 upgradeMapping[tokenId]
             );
     }
@@ -321,9 +378,9 @@ contract EtherverseNFT is ERC721, Ownable, ReentrancyGuard {
         uint256 tokenId
     ) external view returns (uint8 stat) {
         if (
-            _ownerOf(tokenId) != address(0) || // isTokenMinted  W
+            _ownerOf(tokenId) != address(0) || // isTokenMinted
             tokenLockedTill[tokenId] < block.timestamp || // isUnlocked
-            msg.sender == uriAddress // bypass all the logic if it is being called by Frame contract.  //@tester: not understood this
+            msg.sender == frameAddress // bypass all the logic if it is being called by Frame contract.
         ) {
             if (statLabel == statLabels[0])
                 return upgradeMapping[tokenId].stat1 + baseStat.stat1;
@@ -366,8 +423,8 @@ contract EtherverseNFT is ERC721, Ownable, ReentrancyGuard {
 
     function _getUpgradeModule(
         address _address
-    ) internal view returns (IUpgradeV1) {
-        return IUpgradeV1(IGame(_address).upgradeAddress());
+    ) internal view returns (IUpgrade) {
+        return IUpgrade(IGame(_address).upgradeAddress());
     }
 
     function withdraw(address token) external nonReentrant {
