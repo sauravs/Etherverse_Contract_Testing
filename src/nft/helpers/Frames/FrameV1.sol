@@ -99,13 +99,13 @@ function generateFrame(
     string memory imageBorder = svgImageBorder(data.image, data.powerColor);
     string memory name = svgName(data.powerColor, data.textColor, data.name);
     string memory powerLvl = svgPowerLevel(data.powerLevel);
-    string memory stats = string(abi.encodePacked(
+    string memory stats = string(abi.encodePacked(                                  //@audit-ad-High Use `abi.encode()` instead which will pad items to 32 bytes, which will [prevent hash collisions
         svgStatDisplay(StatDisplay(data.stats[0], data.statLabels[0], "409.13", "412.87")),
         svgStatDisplay(StatDisplay(data.stats[1], data.statLabels[1], "1301.49", "1305.23")),
         svgStatDisplay(StatDisplay(data.stats[2], data.statLabels[2], "2224.06", "2227.8"))
     ));
 
-    return string(abi.encodePacked(
+    return string(abi.encodePacked(    //@audit-ad-High Use `abi.encode()` instead which will pad items to 32 bytes, which will [prevent hash collisions
         "<svg xmlns='http://www.w3.org/2000/svg' xmlSpace='preserve' width='3in' height='4in' version='1.1' style='shape-rendering:geometricPrecision; text-rendering:geometricPrecision; fill-rule:evenodd; clip-rule:evenodd;' viewBox='0 0 4133.28 5464.82'>",
         header,
         "<g>",

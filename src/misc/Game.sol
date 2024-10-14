@@ -24,16 +24,16 @@ contract Game is EtherverseUser, ERC721Holder {
     }
 
     // 0x0C903F1C518724CBF9D00b18C2Db5341fF68269C,0x762aD31Ff4bD1ceb5b3b5868672d5CBEaEf609dF,0x0Fd9e8d3aF1aaee056EB9e802c3A762a667b1904,0x926E109ad836DC3DCb138Af4a8C1bd790E675C93,900,900,"Game"
-    enum RewardType {
+    enum RewardType {  //@audit where RewardType is being used?
         NFT,
         ERC20Token,
         NativeToken
-    }
+    }                                       // 
 
     uint256 public freeUpgradeInput;
     uint256 public paidUpgradeInput;
     uint256 public orderCount;
-    uint256 public marketFee;
+    uint256 public marketFee;                    //what is marketFee? Cut web3tech ,asset creator or gamedeveloper will take?
     address public upgradeAddress;
     mapping(uint256 => Order) public orders;
 
@@ -66,10 +66,10 @@ contract Game is EtherverseUser, ERC721Holder {
     )
         EtherverseUser(
             _etherverse,
-            _user,
-            _userWallet,
+            _user,       // account made for doing write operation
+            _userWallet,  // external wallet where fee amount will be received onlyOwnerOr(user)
             _etherverseFee,
-            initialOwner
+            initialOwner  //@audit what is initialOwner here
         )
     {
         name = _name;
@@ -86,8 +86,8 @@ contract Game is EtherverseUser, ERC721Holder {
         marketFee = _marketFee;
     }
 
-    function createOrder(
-        address _nft,
+    function createOrder(             //@audit  so basically this need to be placed by users who owns the nft (secoondry market place)
+        address _nft,                 // price = 10$  // marketFee will be set by gamedeveloper..suppose he set marketfee =10% ,then he will recieve 1 $ as a commisioon(gamedeveloper)
         uint256 _tokenId,
         uint256 _price
     ) external nonReentrant {
@@ -111,7 +111,8 @@ contract Game is EtherverseUser, ERC721Holder {
         orderCount++;
     }
 
-    function executeOrder(uint256 _orderId) external nonReentrant {
+    function executeOrder(uint256 _orderId) external nonReentrant {    //any buyer who wants to buy that crated order nft
+
         Order memory order = orders[_orderId];
         require(order.orderCompleted == 0, "Order already completed");
 
@@ -119,9 +120,11 @@ contract Game is EtherverseUser, ERC721Holder {
         address nftOwner = nft.ownerOf(order.tokenId);
 
         if (order.fee != 0) {
-            USDC.safeTransferFrom(msg.sender, address(this), order.fee);
+            USDC.safeTransferFrom(msg.sender, address(this), order.fee);  //@audit- high - 
+// passing an arbitrary `from` address to `transferFrom` (or `safeTransferFrom`) can lead to loss of funds, because anyone can transfer tokens from the `from` address if an approval is made
+
         }
-        USDC.safeTransferFrom(msg.sender, nftOwner, order.price);
+        USDC.safeTransferFrom(msg.sender, nftOwner, order.price);  // if fee = 0 // gameDeveloper has set 0 fee .
         nft.safeTransferFrom(nftOwner, msg.sender, order.tokenId);
 
         orders[_orderId].orderCompleted = block.timestamp;

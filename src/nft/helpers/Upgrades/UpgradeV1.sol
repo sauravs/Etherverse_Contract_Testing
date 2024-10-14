@@ -5,7 +5,12 @@ import {Utils} from "../../lib/Utils.sol";
 import {Asset} from "../../lib/Structs.sol";
 import {IEtherverseNFT} from "../../interface/IEtherverseNFT.sol";
 
-contract Upgrade {
+
+//@audit while testing the contract name "Upgrade"  is conflicting with the interface  name "Upgrade" in Structs.sol 
+// while deploying the UpgradeV1.sol contract throwing error "Cannot instantiate an interface."
+  // temporairly updating the contract name in UpgradeV1.sol to "UpgradeV1" to continue testing further
+
+contract UpgradeV1 {
     mapping(bytes32 => Asset.Stat) newStatMap;
     string public constant UpgradeName = "Basic Upgrade";
 

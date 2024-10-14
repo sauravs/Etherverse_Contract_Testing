@@ -1,6 +1,7 @@
 //SPDX-License-Identifier: MIT
-pragma solidity 0.8.24;
+pragma solidity 0.8.24;                             //@audit what is the purpose of etherverseUser.sol contract?
 
+// this contract is to be used either by assetcreator or gamedeveloper
 import "@openzeppelin/contracts/token/ERC20/IERC20.sol";
 import "@openzeppelin/contracts/token/ERC20/utils/SafeERC20.sol";
 import "@openzeppelin/contracts/token/ERC721/IERC721.sol";
@@ -54,16 +55,21 @@ contract EtherverseUser is ReentrancyGuard, Ownable {
         );
         _;
     }
-
+  
+     // user : gamedeveloper or asset creator
     function setUser(address _user) external onlyOwner {
         require(_user == address(0), "User already set");
         user = _user;
     }
-
+     
+     // user : gamedeveloper or asset creator
     function setUserWallet(address _userWallet) external onlyOwnerOr(user) {
         require(_userWallet != address(0), "Invalid Address");
         userWallet = _userWallet;
     }
+
+
+    // proposeCandidate() , cancelProposal() and acceptProposal() created for the purpose of transfer ownership...first send...then newOwner have to accept it (two step process) // in oz direct transferownership cant do that
 
     function proposeCandidate(address _candidate) external onlyOwnerOr(user) {
         require(
@@ -88,16 +94,16 @@ contract EtherverseUser is ReentrancyGuard, Ownable {
         emit ProposalAccepted(user, block.timestamp);
     }
 
-    function withdraw(
-        address _token,
+    function withdraw(                //@audit-ad HIGH missing checks for `msg.sender` in the function ,any can withdraw the fund
+        address _token,       
         uint256 _percentage
     ) external nonReentrant {
-        require(_percentage <= 100, "Invalid percentage");
+        require(_percentage <= 100, "Invalid percentage");  // can be used by either assetcreator or gamedeveloper for withdaorw
         require(userWallet != address(0), "Wallet not set");
         if (_token == address(0)) {
             uint256 amount = (address(this).balance * _percentage) / 100;
             uint256 fee = (amount * etherverseFee) / 10000;
-            payable(etherverse).transfer(fee);
+            payable(etherverse).transfer(fee);   //@audit-ad-low-Unsafe ERC20 Operations should not be used //ERC20 functions may not behave as expected. For example: return values are not always meaningful. It is recommended to use OpenZeppelin's SafeERC20 library.
             uint256 balance = amount - fee;
             payable(userWallet).transfer(balance);
             emit EtherWithdraw(balance, block.timestamp);
@@ -118,3 +124,4 @@ contract EtherverseUser is ReentrancyGuard, Ownable {
         etherverseFee = _fee;
     }
 }
+

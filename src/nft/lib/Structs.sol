@@ -24,7 +24,8 @@ interface Asset {
     }
 }
 
-interface Upgrade {
+
+interface Upgrade {   
     enum Type {
         Free,
         Paid

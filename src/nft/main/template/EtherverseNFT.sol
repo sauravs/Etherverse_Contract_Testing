@@ -11,6 +11,7 @@ import {Asset, Upgrade, Price} from "../../lib/Structs.sol";
 import "../../lib/Fee.sol";
 import "../../lib/errors.sol";
 
+
 // @all please do not remove any comment starting with marker
 
 contract EtherverseNFT is ERC721, Ownable, ReentrancyGuard {
@@ -20,7 +21,7 @@ contract EtherverseNFT is ERC721, Ownable, ReentrancyGuard {
     uint256 private _nextTokenId; // Tracks the next token ID to be minted
 
     // marker STARTING_TOKEN_ID
-    uint256 private constant STARTING_TOKEN_ID = 1000000;
+    uint256 private constant STARTING_TOKEN_ID = 1000000; // @audit why starting token ID this number?
     // marker STARTING_TOKEN_ID
     uint256 private constant MINT_LIMIT = 999999;
 
@@ -30,7 +31,7 @@ contract EtherverseNFT is ERC721, Ownable, ReentrancyGuard {
     string public metadata; // Metadata string
 
     address public assetCreatorWallet; // Wallet for the asset creator's revenue
-    address public USDC; // Address for USDC token
+    address public USDC; // Address for USDC token        @auditcp-gas immutable can be used
     address public _ccipHandler; // Handler for cross-chain integration (via CCIP)
     address public frameAddress; // Frame contract address
 
@@ -44,7 +45,7 @@ contract EtherverseNFT is ERC721, Ownable, ReentrancyGuard {
     mapping(address => bool) public whitelisted;
     mapping(uint256 => Asset.Stat) public upgradeMapping;
     mapping(address => Price) public upgradePricing;
-    mapping(uint256 => uint256) private tokenLockedTill;
+    mapping(uint256 => uint256) public tokenLockedTill; //@audit made it public for testing purpose, revert it back to private before final deployment
 
     // Event for NFT minting and locking a token
     event NftMinted(
@@ -98,11 +99,14 @@ contract EtherverseNFT is ERC721, Ownable, ReentrancyGuard {
         address initialOwner
     ) ERC721(name, symbol) Ownable(initialOwner) {
         // marker assetCreatorWallet
-        assetCreatorWallet = 0xa1293A8bFf9323aAd0419E46Dd9846Cc7363D44b;
+        assetCreatorWallet = 0xa1293A8bFf9323aAd0419E46Dd9846Cc7363D44b; // this is the address of deployed AssetCreator.sol address
         // marker assetCreatorWallet
 
         // marker USDC
-        USDC = 0x0Fd9e8d3aF1aaee056EB9e802c3A762a667b1904;
+        USDC = 0xFEfC6BAF87cF3684058D62Da40Ff3A795946Ab06;  //@audit updating temporary USDC address 0x0Fd9e8d3aF1aaee056EB9e802c3A762a667b1904 (polygon mainnet) from 0x2a9e8fa175F45b235efDdD97d2727741EF4Eee63 (foundry local mockUSDC address)
+        
+         //@audit why not make USDC address dynamic or passing through constructor,why harcoding?also better to provide  setter function for this so that later on we would be able to change it
+
         // marker USDC
         // marker baseStat
         baseStat = Asset.Stat(87, 20, 21);
@@ -129,7 +133,7 @@ contract EtherverseNFT is ERC721, Ownable, ReentrancyGuard {
 
         // TODO: Update the address before deployment
         // marker ccipHandler
-        _ccipHandler = 0x3c7444D7351027473698a7DCe751eE6Aea8036ee;
+        _ccipHandler = 0x3c7444D7351027473698a7DCe751eE6Aea8036ee;   //@audit why not making it dynamic,why harcoding?
         // marker ccipHandler
 
         // 1000 means 10% of the mint price goes to the creator
@@ -138,7 +142,7 @@ contract EtherverseNFT is ERC721, Ownable, ReentrancyGuard {
         // marker mintPricing.split
 
         // marker mintPricing.amount
-        mintPricing.amount = 100000;
+        mintPricing.amount = 100000;   // @audit means 0.1 USDC?
         // marker mintPricing.amount
 
         // TODO: Update the address before deployment
@@ -176,7 +180,7 @@ contract EtherverseNFT is ERC721, Ownable, ReentrancyGuard {
     }
 
     // Setter function to lock a token for a specific duration until token is transferred
-    function setTokenLockStatus(
+    function setTokenLockStatus(          //@audit how it will come to know if that tokenID token is minted?
         uint256 tokenId,
         uint256 unlockTime //CCIP use
     ) external onlyCCIPRouter {
@@ -221,7 +225,7 @@ contract EtherverseNFT is ERC721, Ownable, ReentrancyGuard {
         metadata = str;
     }
 
-    function setMintPricing(
+    function setMintPricing(            
         uint256 _amount,
         uint256 _split
     ) external onlyOwner {
@@ -230,7 +234,7 @@ contract EtherverseNFT is ERC721, Ownable, ReentrancyGuard {
         mintPricing.split = _split == 0 ? mintPricing.split : _split;
     }
 
-    function setUpgradePricing(
+    function setUpgradePricing(        
         uint256 _price,
         uint256 _split
     ) external isWhitelisted(msg.sender) {
@@ -239,7 +243,7 @@ contract EtherverseNFT is ERC721, Ownable, ReentrancyGuard {
         upgradePricing[msg.sender].amount = _price;
     }
 
-    function getTokenStats(
+    function getTokenStats(   
         uint256 tokenId
     ) external view isTokenMinted(tokenId) returns (uint8[3] memory) {
         return [
@@ -249,7 +253,7 @@ contract EtherverseNFT is ERC721, Ownable, ReentrancyGuard {
         ];
     }
 
-    function updateStats(
+    function updateStats(                                              //@audit skipped testing as of now,related to ccip
         uint256 tokenId,
         address newOwner,
         uint8[3] memory stats
@@ -277,22 +281,24 @@ contract EtherverseNFT is ERC721, Ownable, ReentrancyGuard {
             mintPricing.split,
             authorizationParams
         );
-        uint256 tokenId = _nextTokenId++;
+        uint256 tokenId = _nextTokenId++;                 //@auditcp-gas unchecked can be used
         if (tokenId > STARTING_TOKEN_ID + 100000)
             revert Errors.ExceedsCapacity();
-        _safeMint(to, tokenId);
+        _safeMint(to, tokenId);                             //@auditcp-gas repeated Storage Reads
         tokenLockedTill[tokenId] = 0;
         emit NftMinted(to, tokenId, block.timestamp);
         return tokenId;
     }
 
-    function tokenURI(
+    function tokenURI(        //@audit test failing
         uint256 tokenId
     ) public view override(ERC721) returns (string memory) {
         return IFrame(frameAddress).tokenURI(tokenId);
     }
 
-    function freeUpgrade(
+
+
+    function freeUpgrade(               //@audit to correctly test this function ,need to call getTokenStats before calling this function // why not getTokenStats logic embedded in this function?because if we call this function only will receive value 2 every time
         uint256 tokenId
     )
         external
@@ -306,7 +312,7 @@ contract EtherverseNFT is ERC721, Ownable, ReentrancyGuard {
 
     function paidUpgrade(
         uint256 tokenId,
-        bytes memory authorizationParams
+        bytes memory authorizationParams                  //@auditcp-gas calldata can be used instead of memory
     )
         external
         isWhitelisted(msg.sender)
@@ -330,7 +336,7 @@ contract EtherverseNFT is ERC721, Ownable, ReentrancyGuard {
         upgradeMapping[tokenId] = newStat;
     }
 
-    function nextUpgrade(
+    function nextUpgrade(          //testing done
         uint256 tokenId,
         Upgrade.Type _type
     )
