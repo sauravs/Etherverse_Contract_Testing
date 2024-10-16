@@ -192,7 +192,7 @@ contract EtherverseNFT is ERC721, Ownable, ReentrancyGuard {
     // Once the contract is deployed, this signature is set and is used for cross-verification.
     // When checking the minted NFT, this signature is compared against the signature stored in the NFT metadata
     // to ensure authenticity and confirm that it was minted by our Game-X software.
-    function setSign(bytes memory _sign) external onlyOwner {
+    function setSign(bytes memory _sign) external onlyOwner {         //@audit-GAS web3Tech-GAS-4 Use calldata instead of memory to save gas
         sign = _sign;
     }
 
@@ -215,13 +215,13 @@ contract EtherverseNFT is ERC721, Ownable, ReentrancyGuard {
     }
 
     // Change the image URL of the NFT
-    function changeImageUrl(string memory str) external onlyOwner {
+    function changeImageUrl(string calldata str) external onlyOwner {   //@audit-GAS web3Tech-GAS-4 Use calldata instead of memory to save gas
         itemImage = str;
     }
 
     // Update metadata of the NFT
     // metadata for nfts
-    function setMetadata(string memory str) external onlyOwner {
+    function setMetadata(string calldata str) external onlyOwner {    //@audit-GAS web3Tech-GAS-4 Use calldata instead of memory to save gas
         metadata = str;
     }
 
@@ -312,7 +312,7 @@ contract EtherverseNFT is ERC721, Ownable, ReentrancyGuard {
 
     function paidUpgrade(
         uint256 tokenId,
-        bytes memory authorizationParams                  //@auditcp-gas calldata can be used instead of memory
+        bytes memory authorizationParams                  //@audit-GAS-gas calldata can be used instead of memory
     )
         external
         isWhitelisted(msg.sender)

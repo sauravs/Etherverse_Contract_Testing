@@ -24,7 +24,57 @@
 
 
 							  
-							  
+				GAS-01: Use calldata instead of memory for function arguments that do not get mutated to save gas.
+				
+				
+				 No of Instances: 5
+				 
+				 Location : 
+				 
+				 EtherverseNFT.sol : 
+				 
+				 Line No : 195 function setSign()
+				 Line No : 218 function changeImageUrl()
+				 Line No : 224 function setMetadata()
+				 Line No : 313 function paidUpgrade()
+				 
+				 
+				 
+				 UpgradeV1.sol : 
+				 
+				 Line No : 19 function calculateUpgrade()
+        
+                
+                Explaination and Examples:
+				
+				Mark data types as calldata instead of memory where possible. This makes it so that the data is not automatically loaded into memory.
+				It is generally cheaper to load variables directly from calldata, rather than copying them to memory. Only use memory if the variable needs to be modified.
+				
+			
+				
+				For example:  
+				
+				function SetSign() (gas: 40212) (with calldata)
+	            function SetSign() (gas: 40557) (with memory)
+				
+				Unoptimized Code : 
+				function setSign(bytes memory _sign) external onlyOwner {         
+                sign = _sign;
+                }
+				
+				Optimized Code : 
+				
+				function setSign(bytes calldata _sign) external onlyOwner {         
+                sign = _sign;
+                }
+	
+
+                
+           
+                
+              
+             
+               			 
 							  
 							  
 							  

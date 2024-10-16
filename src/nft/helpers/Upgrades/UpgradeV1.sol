@@ -17,7 +17,7 @@ contract UpgradeV1 {
     constructor() {}
 
     function calculateUpgrade(
-        Asset.Stat memory _stat,
+        Asset.Stat memory _stat,     //@audit-GAS web3Tech-GAS-4 Use calldata instead of memory to 
         uint8 _increment
     ) external returns (Asset.Stat memory) {
         bytes32 hash = Utils._generateStatHash(_stat);

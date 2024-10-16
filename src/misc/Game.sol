@@ -82,7 +82,7 @@ contract Game is EtherverseUser, ERC721Holder {
     }
 
     function setMarketFee(uint256 _marketFee) external onlyOwnerOr(user) {
-        require(_marketFee > 10000, "Market fee must be less than 100%");
+        require(_marketFee < 10000, "Market fee must be less than 100%");   //@audit -critical- high  (_marketFee > 10000) incorrect equality ,it should be less than 100%,updating to marketFee < 10000 to continue testing further
         marketFee = _marketFee;
     }
 
